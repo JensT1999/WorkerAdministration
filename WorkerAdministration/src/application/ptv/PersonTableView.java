@@ -4,6 +4,7 @@ import application.PersonTableFrame;
 import application.utils.Person;
 import application.utils.SortType;
 import application.utils.Utils;
+import application.utils.WorkerSearchAlgo;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TableColumn;
@@ -15,6 +16,7 @@ import javafx.util.converter.IntegerStringConverter;
 public class PersonTableView extends TableView<Person> {
 	
 	private PersonTableFrame ptf;
+	private WorkerSearchAlgo wsa;
 	
 	private TableColumn<Person, Integer> tc1;
 	private TableColumn<Person, String> tc2;
@@ -22,13 +24,13 @@ public class PersonTableView extends TableView<Person> {
 	private TableColumn<Person, Integer> tc4;
 	
 	private boolean editable;
-	
-	private ObservableList<Person> loadedPersons;
-	
+		
 	private TableViewConfig cfg;
 	
 	public PersonTableView(PersonTableFrame ptf) {
 		this.ptf = ptf;
+		this.wsa = this.ptf.getWSA();
+		
 		this.tc1 = new TableColumn<Person, Integer>("ID");
 		this.tc2 = new TableColumn<Person, String>("Vorname");
 		this.tc3 = new TableColumn<Person, String>("Nachname");
@@ -38,10 +40,7 @@ public class PersonTableView extends TableView<Person> {
 		
 		this.cfg = this.ptf.getConfig();
 		
-		this.loadedPersons = Utils.sortPersons(SortType.BY_ID, 
-				this.ptf.getPathManager().getDataOutOfAllFiles());
-		
-		this.setItems(this.loadedPersons);
+		this.setItems(this.wsa.getLoadedPersons());
 		
 		this.buildTable();
 	}
@@ -128,7 +127,7 @@ public class PersonTableView extends TableView<Person> {
 		});
 		
 		this.setOnSort(e -> {
-			if(this.ptf.getPersonSearchBox().hasSearchData()) {
+			if(this.ptf.getPersonSearchBox().getWSA().hasSearchData()) {
 				this.ptf.getPersonSearchBox().updateSearchData();
 			}
 		});
@@ -146,41 +145,33 @@ public class PersonTableView extends TableView<Person> {
 	}
 	
 	public void addP(Person p) {
-		if(!this.loadedPersons.contains(p)) {
-			this.loadedPersons.add(p);
-			this.ptf.getPersonSearchBox().addP(p);
+		if(!this.wsa.getLoadedPersons().contains(p)) {
+			this.wsa.addP(p);
+			this.updateComplete();
 		}
 	}
 	
 	public void removeP(Person p) {
-		for(int i = 0 ; i < this.loadedPersons.size(); i++) {
-			if(this.loadedPersons.get(i).equals(p)) {
-				this.loadedPersons.remove(i);
-			}
+		if(this.wsa.getLoadedPersons().contains(p)) {
+			this.wsa.removeP(p);
 		}
 	}
 	
 	public void updateComplete() {
-		if(this.getConfig().getLoadedPaths() != null && 
-				this.getConfig().getLoadedPaths().size() > 0) {
-			if(this.ptf.getPathManager().getDataOutOfAllFiles() != null && 
-					this.ptf.getPathManager().getDataOutOfAllFiles().size() > 0) {
-				this.loadedPersons = this.ptf.getPathManager().getDataOutOfAllFiles();
-				this.ptf.getPersonSearchBox().setLoadedPersons(this.loadedPersons);
-				this.setItems(this.loadedPersons);
+		System.out.println(this.wsa.getLoadedPersons().size());
+		if(this.wsa.getLoadedPersons() != null && this.wsa.getLoadedPersons().size() > 0) {
+			if(this.wsa.hasSearchData()) {
+				this.setItems(this.wsa.searchForData());
+			} else {
+				this.setItems(this.wsa.getLoadedPersons());
 			}
 		} else {
 			ObservableList<Person> list = FXCollections.observableArrayList();
-			this.ptf.getPersonSearchBox().setLoadedPersons(list);
 			this.setItems(list);
 		}
 		
-		this.ptf.getPersonSearchBox().updateCurrentSearchMatches();
+		this.wsa.updateSearchMatches();
 		this.ptf.getDataBox().setCurrentSearchMatches();
-	}
-	
-	public ObservableList<Person> getLoadedPersons(){
-		return loadedPersons;
 	}
 	
 	public PersonTableFrame getFrame() {
@@ -193,5 +184,9 @@ public class PersonTableView extends TableView<Person> {
 	
 	public ObservableList<Person> getItemsOfTable() {
 		return this.getItems();
+	}
+	
+	public WorkerSearchAlgo getWSA() {
+		return wsa;
 	}
 }

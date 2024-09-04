@@ -1,6 +1,8 @@
 package application.ptv;
 
 import application.utils.LoadedPathManager;
+import application.utils.Person;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -54,9 +56,12 @@ public class FileManagerBox extends VBox {
 			if(e.getCode().equals(KeyCode.ENTER) || e.getCode().equals(KeyCode.TAB)) {
 				if(this.pathField.getText() != null && this.pathField.getText() != "") {
 					String path = this.pathField.getText();
-					this.lpm.addLoadedPath(path, this.lpm.convertFileIntoTable(path));
+					ObservableList<Person> list = this.lpm.convertFileIntoTable(path);
+					this.lpm.addLoadedPath(path, list);
 					this.lpm.saveLoadedPaths();
 					this.updateLoadedPaths();
+					this.ptv.getWSA().addPAsList(list);
+					
 					this.ptv.updateComplete();
 					this.pathField.clear();
 				}
@@ -69,8 +74,11 @@ public class FileManagerBox extends VBox {
 					this.lv.getSelectionModel().getSelectedItem() != "") {
 				String path = this.lv.getSelectionModel().getSelectedItem();
 				
+				ObservableList<Person> list = this.lpm.convertFileIntoTable(path);
 				this.lpm.removeLoadedPath(path);
 				this.updateLoadedPaths();
+				
+				this.ptv.getWSA().removePAsList(list);
 				
 				this.ptv.updateComplete();
 			}
@@ -85,9 +93,12 @@ public class FileManagerBox extends VBox {
 		this.b1.setOnMouseClicked(e -> {
 			if(this.pathField.getText() != null && this.pathField.getText() != "") {
 				String path = this.pathField.getText();
-				this.lpm.addLoadedPath(path, this.lpm.convertFileIntoTable(path));
+				ObservableList<Person> list = this.lpm.convertFileIntoTable(path);
+				this.lpm.addLoadedPath(path, list);
 				this.lpm.saveLoadedPaths();
 				this.updateLoadedPaths();
+				this.ptv.getWSA().addPAsList(list);
+				
 				this.ptv.updateComplete();
 				this.pathField.clear();
 			}

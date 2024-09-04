@@ -8,6 +8,7 @@ import application.ptv.PersonSearchBox;
 import application.ptv.PersonTableView;
 import application.ptv.TableViewConfig;
 import application.utils.LoadedPathManager;
+import application.utils.WorkerSearchAlgo;
 import javafx.scene.layout.BorderPane;
 
 public class PersonTableFrame extends BorderPane {
@@ -16,6 +17,7 @@ public class PersonTableFrame extends BorderPane {
 	
 	private TableViewConfig cfg;
 	private LoadedPathManager lpm;
+	private WorkerSearchAlgo wsa;
 	
 	private PersonTableView ptv;	
 	private BrowsePane bp;
@@ -31,11 +33,12 @@ public class PersonTableFrame extends BorderPane {
 		this.cfg.load();
 		this.lpm = new LoadedPathManager(this.cfg);
 		this.lpm.loadPathsOutOfCfg();
+		this.wsa = new WorkerSearchAlgo(this.lpm);
 		
 		this.ptv = new PersonTableView(this);
 		this.bp = new BrowsePane(this, this.ptv);
 		this.fmb = new FileManagerBox(this.ptv);
-		this.psb = new PersonSearchBox(this.ptv);
+		this.psb = new PersonSearchBox(this.ptv, this.wsa);
 		this.ib = new InteractionBox(this.ptv);
 		this.db = new DataBox(this.ptv);
 		
@@ -47,6 +50,10 @@ public class PersonTableFrame extends BorderPane {
 		this.setTop(this.psb);
 		this.setRight(this.bp);
 		this.setBottom(this.db);
+	}
+	
+	public WorkerSearchAlgo getWSA() {
+		return wsa;
 	}
 	
 	public LoadedPathManager getPathManager() {
