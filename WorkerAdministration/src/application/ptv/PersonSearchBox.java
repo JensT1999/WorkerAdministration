@@ -64,6 +64,8 @@ public class PersonSearchBox extends HBox {
 		this.loadedPersons = Utils.sortPersons(this.currentSortType,
 				this.ptv.getFrame().getPathManager().getDataOutOfAllFiles());
 		
+		this.updateCurrentSearchMatches();
+		
 		this.buildBox();
 	}
 	

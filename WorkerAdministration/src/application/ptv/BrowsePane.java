@@ -1,6 +1,6 @@
 package application.ptv;
 
-import application.BackButton;
+//import application.BackButton;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -18,7 +18,7 @@ public class BrowsePane extends TilePane {
 	private Button b3;
 	private Button b4;
 	
-	private BackButton bb;
+//	private BackButton bb;
 	
 	private BoxType lastBox;
 	
@@ -31,7 +31,7 @@ public class BrowsePane extends TilePane {
 		this.b3 = new Button(BoxType.NONE.toString());
 		this.b4 = new Button(BoxType.NONE.toString());
 		
-		this.bb = new BackButton(this);
+//		this.bb = new BackButton(this);
 		
 		this.lastBox = BoxType.BROWSER;
 		
@@ -50,11 +50,11 @@ public class BrowsePane extends TilePane {
 		TilePane.setMargin(b3, new Insets(10));
 		TilePane.setMargin(b4, new Insets(10));
 		
-		HBox.setMargin(bb, new Insets(10));
+//		HBox.setMargin(bb, new Insets(10));
 		
 		this.setAlignment(Pos.CENTER);
 		
-		this.ptv.getFrame().getDataBox().getChildren().add(bb);
+//		this.ptv.getFrame().getDataBox().getChildren().add(bb);
 		this.getChildren().addAll(b1, b2, b3, b4);
 		
 		this.b1.setOnMouseClicked(e -> this.buttonClicked(BoxType.INTERACTION_BOX));
@@ -73,14 +73,14 @@ public class BrowsePane extends TilePane {
 					if(this.root != null && this.ptv != null &&
 							this.ptv.getFrame().getInteractionBox() != null) {
 						this.root.setRight(this.ptv.getFrame().getInteractionBox());
-						this.bb.setLastBox(BoxType.BROWSER);
+//						this.bb.setLastBox(BoxType.BROWSER);
 					}
 				}
 				case BoxType.FILEMANAGER_BOX -> {
 					if(this.root != null && this.ptv != null &&
 							this.ptv.getFrame().getFileManagerBox() != null) {
 						this.root.setRight(this.ptv.getFrame().getFileManagerBox());
-						this.bb.setLastBox(BoxType.BROWSER);
+//						this.bb.setLastBox(BoxType.BROWSER);
 					}
 				}
 				case BoxType.NONE -> System.out.println("Dies ist ein Platzhalter");

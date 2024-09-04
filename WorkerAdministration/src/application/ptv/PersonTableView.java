@@ -134,11 +134,6 @@ public class PersonTableView extends TableView<Person> {
 		});
 		
 		this.getColumns().addAll(tc1, tc2, tc3, tc4);
-		
-		this.ptf.getPersonSearchBox().updateCurrentSearchMatches();
-		
-		this.ptf.getDataBox().setCurrentSearchMatches();
-		
 	}
 	
 	public void changeEditable() {

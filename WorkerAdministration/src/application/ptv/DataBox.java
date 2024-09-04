@@ -41,6 +41,8 @@ public class DataBox extends HBox {
 		HBox.setMargin(l5, new Insets(10));
 		
 		this.getChildren().addAll(l1, l2, l3, l4, l5);
+		
+		this.setCurrentSearchMatches();
 	}
 	
 	public void setData(Person p) {
