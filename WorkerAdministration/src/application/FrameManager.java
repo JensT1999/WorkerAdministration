@@ -15,7 +15,7 @@ public class FrameManager {
 	
 	private Scene scene;
 	
-	public FrameManager(Scene scene, double width, double height) {
+	public FrameManager(double width, double height) {
 		this.mf = new MainFrame();
 		this.ptf = new PersonTableFrame(this);
 		
@@ -24,7 +24,7 @@ public class FrameManager {
 		this.lf = FrameType.NONE;
 		this.cf = FrameType.MAIN_FRAME;
 		
-		this.scene = new Scene(this.mf, width, height);
+		this.scene = new Scene(this.ptf, width, height);
 	}
 	
 	public void switchTo(FrameType type) {
@@ -67,5 +67,9 @@ public class FrameManager {
 				}
 			}
 		}
+	}
+	
+	public Scene getScene() {
+		return scene;
 	}
 }
