@@ -1,12 +1,6 @@
-package application;
+package application.ptv;
 
-import application.ptv.BrowsePane;
-import application.ptv.DataBox;
-import application.ptv.FileManagerBox;
-import application.ptv.InteractionBox;
-import application.ptv.PersonSearchBox;
-import application.ptv.PersonTableView;
-import application.ptv.TableViewConfig;
+import application.FrameManager;
 import application.utils.LoadedPathManager;
 import application.utils.WorkerSearchAlgo;
 import javafx.scene.layout.BorderPane;

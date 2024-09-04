@@ -1,5 +1,7 @@
 package application;
 
+import application.mf.MainFrame;
+import application.ptv.PersonTableFrame;
 import application.utils.FrameType;
 import javafx.scene.Scene;
 

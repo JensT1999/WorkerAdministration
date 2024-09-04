@@ -1,6 +1,5 @@
 package application.ptv;
 
-import application.PersonTableFrame;
 import application.utils.Person;
 import application.utils.SortType;
 import application.utils.Utils;

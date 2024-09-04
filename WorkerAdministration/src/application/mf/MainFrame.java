@@ -1,4 +1,4 @@
-package application;
+package application.mf;
 
 import javafx.scene.layout.BorderPane;
 
