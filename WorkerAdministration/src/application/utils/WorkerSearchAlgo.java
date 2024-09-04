@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -17,6 +21,8 @@ public class WorkerSearchAlgo {
 	private int currentSearchMatches;
 	
 	private SortType currentSortType;
+	
+	private ExecutorService exe;
 		
 	public WorkerSearchAlgo(LoadedPathManager l) {
 		this.lpm = l;
@@ -28,81 +34,101 @@ public class WorkerSearchAlgo {
 		
 		this.loadedPersons = Utils.sortPersons(this.currentSortType,
 				this.lpm.getDataOutOfAllFiles());
+		
+		this.exe = Executors.newCachedThreadPool();
 	}
 	
 	public ObservableList<Person> searchForData() {
-		ObservableList<Person> tempList = FXCollections.observableArrayList();
-		HashMap<Person, Integer> tempMap = new HashMap<Person, Integer>();
-		
-		ArrayList<Person> list1 = new ArrayList<Person>();
-		ArrayList<Person> list2 = new ArrayList<Person>();
-		ArrayList<Person> list3 = new ArrayList<Person>();
-		ArrayList<Person> list4 = new ArrayList<Person>();
-		
-		ArrayList<Person> noMatch = new ArrayList<Person>();
-		
-		// data String 0 = id; 1 = vorname; 2 = nachname; 3 = alter
-		
-		if(this.lastSearchData != null) {
-			for(int i1 = 0; i1 < this.loadedPersons.size(); i1++) {
-				Person p = this.loadedPersons.get(i1);
+		try {
+			Future<ObservableList<Person>> future = 
+					this.exe.submit(new Callable<ObservableList<Person>>() {
 				
-				if(!tempMap.containsKey(p)) {
-					
-					String[] dataCheck = {String.valueOf(p.getId()), p.getFirstName(),
-							p.getLastName(), String.valueOf(p.getAge())};
-					
-					int[] compares = this.compareInInt(dataCheck, this.lastSearchData);
-					int o = 0;
-					
-					for(int i = 0; i < compares.length; i++) {
+					@Override
+					public ObservableList<Person> call() throws Exception {
 						
-						if(compares[i] == 0) {
-							o++;
-						} else if(compares[i] == 2) {
-							noMatch.add(p);
+						ObservableList<Person> tempList = FXCollections.observableArrayList();
+						HashMap<Person, Integer> tempMap = new HashMap<Person, Integer>();
+							
+						ArrayList<Person> list1 = new ArrayList<Person>();
+						ArrayList<Person> list2 = new ArrayList<Person>();
+						ArrayList<Person> list3 = new ArrayList<Person>();
+						ArrayList<Person> list4 = new ArrayList<Person>();
+							
+						ArrayList<Person> noMatch = new ArrayList<Person>();
+							
+						// data String 0 = id; 1 = vorname; 2 = nachname; 3 = alter
+							
+						if(lastSearchData != null) {
+							for(int i1 = 0; i1 < loadedPersons.size(); i1++) {
+								Person p = loadedPersons.get(i1);
+									
+								if(!tempMap.containsKey(p)) {
+										
+									String[] dataCheck = {String.valueOf(p.getId()), 
+											p.getFirstName(), p.getLastName(), 
+											String.valueOf(p.getAge())};
+										
+									int[] compares = compareInInt(dataCheck, lastSearchData);
+									int o = 0;
+										
+									for(int i = 0; i < compares.length; i++) {
+											
+										if(compares[i] == 0) {
+											o++;
+										} else if(compares[i] == 2) {
+											noMatch.add(p);
+										}
+									}
+									tempMap.put(p, o);
+								}
+							}
+								
+							noMatch.forEach(e -> {
+								if(tempMap.containsKey(e)) {
+									tempMap.remove(e);
+								}
+							});
+								
+							for(Map.Entry<Person, Integer> entry : tempMap.entrySet()) {
+								if(entry.getValue() == 4) {
+									list1.add(entry.getKey());
+								} else if(entry.getValue() == 3) {
+									list2.add(entry.getKey());
+								} else if(entry.getValue() == 2) {
+									list3.add(entry.getKey());
+								} else if(entry.getValue() == 1) {
+									list4.add(entry.getKey());
+								}
+							}
+								
+							if(list1.size() > 0) {
+								list1.forEach(e -> tempList.add(e));
+							} else {
+								if(list2.size() > 0) {
+									list2.forEach(e -> tempList.add(e));
+								} else {
+									if(list3.size() > 0) {
+										list3.forEach(e -> tempList.add(e));
+									} else {
+										if(list4.size() > 0) {
+											list4.forEach(e -> tempList.add(e));
+										}
+									}
+								}
+							}
 						}
+											
+						return Utils.sortPersons(currentSortType, tempList);
 					}
-					tempMap.put(p, o);
-				}
-			}
-			
-			noMatch.forEach(e -> {
-				if(tempMap.containsKey(e)) {
-					tempMap.remove(e);
-				}
 			});
 			
-			for(Map.Entry<Person, Integer> entry : tempMap.entrySet()) {
-				if(entry.getValue() == 4) {
-					list1.add(entry.getKey());
-				} else if(entry.getValue() == 3) {
-					list2.add(entry.getKey());
-				} else if(entry.getValue() == 2) {
-					list3.add(entry.getKey());
-				} else if(entry.getValue() == 1) {
-					list4.add(entry.getKey());
-				}
-			}
+			return future.get();
 			
-			if(list1.size() > 0) {
-				list1.forEach(e -> tempList.add(e));
-			} else {
-				if(list2.size() > 0) {
-					list2.forEach(e -> tempList.add(e));
-				} else {
-					if(list3.size() > 0) {
-						list3.forEach(e -> tempList.add(e));
-					} else {
-						if(list4.size() > 0) {
-							list4.forEach(e -> tempList.add(e));
-						}
-					}
-				}
-			}
+		} catch(Exception e) {
+			e.printStackTrace();
 		}
-						
-		return Utils.sortPersons(this.currentSortType, tempList);
+		
+		return null;
 	}
 	
 	public int[] compareInInt(String[] d1, String[] d2) {

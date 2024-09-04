@@ -158,12 +158,11 @@ public class PersonTableView extends TableView<Person> {
 	}
 	
 	public void updateComplete() {
-		System.out.println(this.wsa.getLoadedPersons().size());
 		if(this.wsa.getLoadedPersons() != null && this.wsa.getLoadedPersons().size() > 0) {
 			if(this.wsa.hasSearchData()) {
 				this.setItems(this.wsa.searchForData());
 			} else {
-				this.setItems(this.wsa.getLoadedPersons());
+				this.setItems(this.wsa.sortTable());
 			}
 		} else {
 			ObservableList<Person> list = FXCollections.observableArrayList();

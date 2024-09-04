@@ -221,4 +221,12 @@ public class LoadedPathManager {
 	public HashMap<String, ObservableList<Person>> getLoadedPaths(){
 		return loadedPaths;
 	}
+	
+	public ObservableList<Person> getListFromPath(String path){
+		if(path != null && this.loadedPaths != null) {
+			return this.loadedPaths.get(path);
+		}
+		
+		return null;
+	}
 }

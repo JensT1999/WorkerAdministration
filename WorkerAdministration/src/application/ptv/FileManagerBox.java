@@ -74,7 +74,7 @@ public class FileManagerBox extends VBox {
 					this.lv.getSelectionModel().getSelectedItem() != "") {
 				String path = this.lv.getSelectionModel().getSelectedItem();
 				
-				ObservableList<Person> list = this.lpm.convertFileIntoTable(path);
+				ObservableList<Person> list = this.lpm.getListFromPath(path);
 				this.lpm.removeLoadedPath(path);
 				this.updateLoadedPaths();
 				
