@@ -170,7 +170,6 @@ public class LoadedPathManager {
 	public void addLoadedPath(String path, ObservableList<Person> data) {
 		if(!this.loadedPaths.containsKey(path)) {
 			this.loadedPaths.put(path, data);
-			this.updateLoadedPaths();
 		}
 	}
 	
@@ -178,7 +177,6 @@ public class LoadedPathManager {
 		if(this.loadedPaths.containsKey(path) &&
 				this.cfg.getLoadedPaths().contains(path)) {
 			this.loadedPaths.remove(path);
-			this.updateLoadedPaths();
 			
 			for(int i = 0; i < this.cfg.getLoadedPaths().size(); i++) {
 				if(this.cfg.getLoadedPaths().get(i).equals(path)) {
@@ -190,7 +188,7 @@ public class LoadedPathManager {
 		}
 	}
 	
-	public void updateLoadedPaths() {
+	public ObservableList<String> updateLoadedPaths() {
 		ObservableList<String> list = FXCollections.observableArrayList();
 		if(this.loadedPaths != null && this.loadedPaths.size() > 0) {
 			
@@ -203,7 +201,7 @@ public class LoadedPathManager {
 			}
 		}
 		
-		// this.lv.setItems(list);
+		return list;
 	}
 	
 	public void saveLoadedPaths() {

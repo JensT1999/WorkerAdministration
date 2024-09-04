@@ -56,6 +56,7 @@ public class FileManagerBox extends VBox {
 					String path = this.pathField.getText();
 					this.lpm.addLoadedPath(path, this.lpm.convertFileIntoTable(path));
 					this.lpm.saveLoadedPaths();
+					this.updateLoadedPaths();
 					this.ptv.updateComplete();
 					this.pathField.clear();
 				}
@@ -69,6 +70,7 @@ public class FileManagerBox extends VBox {
 				String path = this.lv.getSelectionModel().getSelectedItem();
 				
 				this.lpm.removeLoadedPath(path);
+				this.updateLoadedPaths();
 				
 				this.ptv.updateComplete();
 			}
@@ -85,6 +87,7 @@ public class FileManagerBox extends VBox {
 				String path = this.pathField.getText();
 				this.lpm.addLoadedPath(path, this.lpm.convertFileIntoTable(path));
 				this.lpm.saveLoadedPaths();
+				this.updateLoadedPaths();
 				this.ptv.updateComplete();
 				this.pathField.clear();
 			}
@@ -98,6 +101,7 @@ public class FileManagerBox extends VBox {
 				if(this.lpm.getLoadedPaths().containsKey(path)) {
 					this.lpm.addLoadedPath(path, this.lpm.convertTableIntoFile(path));
 					this.lpm.saveLoadedPaths();
+					this.updateLoadedPaths();
 					this.ptv.updateComplete();
 				}
 			}
@@ -106,13 +110,20 @@ public class FileManagerBox extends VBox {
 				String path = this.pathField.getText();
 				this.lpm.addLoadedPath(path, this.lpm.convertTableIntoFile(path));
 				this.lpm.saveLoadedPaths();
+				this.updateLoadedPaths();
 				this.ptv.updateComplete();
 				this.pathField.clear();
 			}
 		});
 		
 		this.hBox.getChildren().addAll(b1, b2);
-		this.getChildren().addAll(l1, lv, pathField, hBox, b3);		
+		this.getChildren().addAll(l1, lv, pathField, hBox, b3);
+		
+		this.updateLoadedPaths();
+	}
+	
+	private void updateLoadedPaths() {
+		this.lv.setItems(this.lpm.updateLoadedPaths());
 	}
 
 	public PersonTableView getPtv() {
