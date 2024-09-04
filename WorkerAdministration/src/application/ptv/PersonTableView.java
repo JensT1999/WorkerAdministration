@@ -36,11 +36,10 @@ public class PersonTableView extends TableView<Person> {
 		
 		this.editable = true;
 		
-		this.cfg = new TableViewConfig(this, "C:\\Users\\ctrap\\Desktop\\test", "config.txt");
-		this.cfg.load();
+		this.cfg = this.ptf.getConfig();
 		
 		this.loadedPersons = Utils.sortPersons(SortType.BY_ID, 
-				this.ptf.getFileManagerBox().getDataOutOfAllFiles());
+				this.ptf.getPathManager().getDataOutOfAllFiles());
 		
 		this.setItems(this.loadedPersons);
 		
@@ -169,9 +168,9 @@ public class PersonTableView extends TableView<Person> {
 	public void updateComplete() {
 		if(this.getConfig().getLoadedPaths() != null && 
 				this.getConfig().getLoadedPaths().size() > 0) {
-			if(this.ptf.getFileManagerBox().getDataOutOfAllFiles() != null && 
-					this.ptf.getFileManagerBox().getDataOutOfAllFiles().size() > 0) {
-				this.loadedPersons = this.ptf.getFileManagerBox().getDataOutOfAllFiles();
+			if(this.ptf.getPathManager().getDataOutOfAllFiles() != null && 
+					this.ptf.getPathManager().getDataOutOfAllFiles().size() > 0) {
+				this.loadedPersons = this.ptf.getPathManager().getDataOutOfAllFiles();
 				this.ptf.getPersonSearchBox().setLoadedPersons(this.loadedPersons);
 				this.setItems(this.loadedPersons);
 			}

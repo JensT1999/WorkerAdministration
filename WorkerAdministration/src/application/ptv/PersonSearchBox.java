@@ -62,7 +62,7 @@ public class PersonSearchBox extends HBox {
 		this.currentSortType = SortType.BY_ID;
 		
 		this.loadedPersons = Utils.sortPersons(this.currentSortType,
-				this.ptv.getFrame().getFileManagerBox().getDataOutOfAllFiles());
+				this.ptv.getFrame().getPathManager().getDataOutOfAllFiles());
 		
 		this.buildBox();
 	}

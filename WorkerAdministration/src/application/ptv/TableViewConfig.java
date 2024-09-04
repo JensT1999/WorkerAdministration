@@ -5,21 +5,18 @@ import java.util.ArrayList;
 import application.utils.FileManager;
 
 public class TableViewConfig {
-	
-	private PersonTableView ptv;
-	
+		
 	private String path;
 	private String name;
 	
 	private String dataSeparator;
 	private ArrayList<String> loadedPaths;
 	
-	public TableViewConfig(PersonTableView tv) {
-		this(tv, "", "");
+	public TableViewConfig() {
+		this("", "");
 	}
 	
-	public TableViewConfig(PersonTableView tv, String path, String name) {
-		this.ptv = tv;
+	public TableViewConfig(String path, String name) {
 		this.path = path;
 		this.name = name;
 		this.dataSeparator = ",";
@@ -86,10 +83,10 @@ public class TableViewConfig {
 				for(int i = 0; i < this.loadedPaths.size(); i++) {
 					if(this.loadedPaths.get(i) != null && this.loadedPaths.get(i) != "") {
 						if(pathData == "") {
-							pathData = this.loadedPaths.get(i) + this.ptv.getConfig().getDataSeparator();
+							pathData = this.loadedPaths.get(i) + this.getDataSeparator();
 						} else {
 							pathData = pathData + this.loadedPaths.get(i) + 
-									this.ptv.getConfig().getDataSeparator();
+									this.getDataSeparator();
 						}
 					}
 				}
@@ -120,14 +117,6 @@ public class TableViewConfig {
 
 	public void setName(String name) {
 		this.name = name;
-	}
-
-	public PersonTableView getPtv() {
-		return ptv;
-	}
-
-	public void setPtv(PersonTableView ptv) {
-		this.ptv = ptv;
 	}
 
 	public String getDataSeparator() {

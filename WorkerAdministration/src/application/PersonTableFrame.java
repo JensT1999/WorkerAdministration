@@ -6,11 +6,16 @@ import application.ptv.FileManagerBox;
 import application.ptv.InteractionBox;
 import application.ptv.PersonSearchBox;
 import application.ptv.PersonTableView;
+import application.ptv.TableViewConfig;
+import application.utils.LoadedPathManager;
 import javafx.scene.layout.BorderPane;
 
 public class PersonTableFrame extends BorderPane {
 	
 	private FrameManager fm;
+	
+	private TableViewConfig cfg;
+	private LoadedPathManager lpm;
 	
 	private PersonTableView ptv;	
 	private BrowsePane bp;
@@ -21,6 +26,12 @@ public class PersonTableFrame extends BorderPane {
 	
 	public PersonTableFrame(FrameManager fm) {
 		this.fm = fm;
+		
+		this.cfg = new TableViewConfig("C:\\Users\\ctrap\\Desktop\\test", "config.txt");
+		this.cfg.load();
+		this.lpm = new LoadedPathManager(this.cfg);
+		this.lpm.loadPathsOutOfCfg();
+		
 		this.ptv = new PersonTableView(this);
 		this.bp = new BrowsePane(this, this.ptv);
 		this.fmb = new FileManagerBox(this.ptv);
@@ -36,6 +47,10 @@ public class PersonTableFrame extends BorderPane {
 		this.setTop(this.psb);
 		this.setRight(this.bp);
 		this.setBottom(this.db);
+	}
+	
+	public LoadedPathManager getPathManager() {
+		return lpm;
 	}
 
 	public FrameManager getFrameManager() {
@@ -64,5 +79,9 @@ public class PersonTableFrame extends BorderPane {
 
 	public DataBox getDataBox() {
 		return db;
+	}
+	
+	public TableViewConfig getConfig() {
+		return cfg;
 	}
 }
