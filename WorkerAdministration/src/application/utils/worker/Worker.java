@@ -1,8 +1,11 @@
 package application.utils.worker;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
+
+import application.utils.Utils;
 
 public class Worker {
 	
@@ -72,7 +75,36 @@ public class Worker {
 		return this.wFi.getNegHours();
 	}
 	
-	class Birthday {
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+		this.wFi.setFirstName(firstName);
+	}
+	
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
+		this.wFi.setLastName(lastName);
+	}
+	
+	public void setBirthday(String bd) {
+		if(Utils.isValidDate(bd)) {
+			this.birthday = new Birthday(bd);
+			this.wFi.setBirthday(bd);
+		}
+	}
+	
+	public void setPosHours(double h) {
+		this.wFi.setPosHours(h);
+	}
+	
+	public void setNegHours(double h) {
+		this.wFi.setNegHours(h);
+	}
+	
+	public void saveFileData() {
+		this.wFi.saveData();
+	}
+	
+	public class Birthday {
 		
 		private String day;
 		

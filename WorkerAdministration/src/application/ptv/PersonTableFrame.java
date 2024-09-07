@@ -13,6 +13,7 @@ public class PersonTableFrame extends BorderPane {
 	private PersonSearchBox psb;
 	private InteractionBox ib;
 	private DataBox db;
+	private WorkerDataBox wdb;
 	
 	public PersonTableFrame(FrameManager fm) {
 		this.fm = fm;		
@@ -21,6 +22,7 @@ public class PersonTableFrame extends BorderPane {
 		this.psb = new PersonSearchBox(this);
 		this.ib = new InteractionBox(this);
 		this.db = new DataBox(this);
+		this.wdb = new WorkerDataBox(this);
 		
 		this.buildFrame();
 	}
@@ -50,6 +52,10 @@ public class PersonTableFrame extends BorderPane {
 
 	public DataBox getDataBox() {
 		return db;
+	}
+	
+	public WorkerDataBox getWDB() {
+		return wdb;
 	}
 	
 	public WorkerManager getWorkerManager() {

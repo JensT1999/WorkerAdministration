@@ -33,7 +33,7 @@ public class PersonTableView extends TableView<Worker> {
 		this.tc4 = new TableColumn<Worker, Integer>("Alter");
 		this.tc5 = new TableColumn<Worker, Double>("Minusstunden");
 						
-		this.setItems(this.ptf.getWorkerManager().getWorkers());
+		this.setItems(this.wsa.getLoadedPersons());
 		
 		this.buildTable();
 	}
@@ -53,9 +53,13 @@ public class PersonTableView extends TableView<Worker> {
 			if(this.getSelectionModel().getSelectedItem() != null) {
 				Worker p = this.getSelectionModel().getSelectedItem();
 				this.ptf.getDataBox().setData(p);
+				
+				if(e.getClickCount() >= 2) {
+					this.ptf.getWDB().showBoxFor(this.getSelectionModel().getSelectedItem());
+				}
 			}
 		});
-		
+				
 		this.setOnSort(e -> {
 			if(this.wsa.hasSearchData()) {
 				this.ptf.getPersonSearchBox().updateSearchData();

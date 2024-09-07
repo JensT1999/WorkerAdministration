@@ -20,6 +20,7 @@ public class InteractionBox extends VBox {
 	private Button b1;
 	private Button b2;
 	private Button b3;
+	private Button b4;
 	
 	public InteractionBox(PersonTableFrame ptf) {
 		this.ptf = ptf;
@@ -31,6 +32,7 @@ public class InteractionBox extends VBox {
 		this.b1 = new Button("Hinzufügen");
 		this.b2 = new Button("Entfernen");
 		this.b3 = new Button("Auslesen");
+		this.b4 = new Button("Daten anzeigen");
 		
 		this.buildBox();
 	}
@@ -45,6 +47,7 @@ public class InteractionBox extends VBox {
 		this.b1.setMaxWidth(Double.MAX_VALUE);
 		this.b2.setMaxWidth(Double.MAX_VALUE);
 		this.b3.setMaxWidth(Double.MAX_VALUE);
+		this.b4.setMaxWidth(Double.MAX_VALUE);
 				
 		VBox.setMargin(tf1, new Insets(10));
 		VBox.setMargin(tf2, new Insets(10));
@@ -53,8 +56,9 @@ public class InteractionBox extends VBox {
 		VBox.setMargin(b1, new Insets(10));
 		VBox.setMargin(b2, new Insets(10));
 		VBox.setMargin(b3, new Insets(10));
+		VBox.setMargin(b4, new Insets(10));
 		
-		this.getChildren().addAll(tf1, tf2, tf3, b1, b2, pathField, b3);
+		this.getChildren().addAll(tf1, tf2, tf3, b1, b2, pathField, b3, b4);
 		
 		this.b1.setOnMouseClicked(e -> {
 			if(this.tf1.getText() != "") {
@@ -102,6 +106,16 @@ public class InteractionBox extends VBox {
 					this.pathField.clear();
 					this.tf1.requestFocus();
 					this.ptf.getPtv().updateComplete();
+				}
+			}
+		});
+		
+		this.b4.setOnMouseClicked(e -> {
+			if(this.ptf.getPtv().getSelectionModel() != null) {
+				if(this.ptf.getPtv().getSelectionModel().getSelectedItem() != null) {
+					Worker w = this.ptf.getPtv().getSelectionModel().getSelectedItem();
+					
+					this.ptf.getWDB().showBoxFor(w);
 				}
 			}
 		});
