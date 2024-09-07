@@ -76,6 +76,45 @@ public class FileManager {
 		}
 	}
 	
+	public static void writeToFile(String path, String[] text) {
+		File file = new File(path);
+		ArrayList<String> finishedList;
+		BufferedWriter bw;
+		Scanner s;
+		
+		try {
+			if(file.exists()) {
+				finishedList = new ArrayList<String>();
+				s = new Scanner(file);
+				
+				while(s.hasNext()) {
+					finishedList.add(s.nextLine());
+				}
+				s.close();
+				
+				for(int i = 0; i < text.length; i++) {
+					if(text[i] != null) {
+						finishedList.add(text[i]);
+					}
+				}
+				
+				bw = new BufferedWriter(new FileWriter(file));
+				
+				finishedList.forEach(str -> {
+					try {
+						bw.write(str);
+						bw.write(System.getProperty("line.separator"));
+						bw.flush();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				});
+				bw.close();
+			}
+		} catch(Exception e) {
+		}
+	}
+	
 	public static void writeToFile(String filePath, ArrayList<String> list) {
 		File file = new File(filePath);
 		ArrayList<String> finishedList;

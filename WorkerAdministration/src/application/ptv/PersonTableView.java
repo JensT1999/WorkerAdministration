@@ -1,9 +1,9 @@
 package application.ptv;
 
-import application.utils.Person;
 import application.utils.SortType;
 import application.utils.Utils;
-import application.utils.WorkerSearchAlgo;
+import application.utils.worker.Worker;
+import application.utils.worker.WorkerSearchAlgo;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TableColumn;
@@ -12,148 +12,57 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.util.converter.IntegerStringConverter;
 
-public class PersonTableView extends TableView<Person> {
+public class PersonTableView extends TableView<Worker> {
 	
 	private PersonTableFrame ptf;
 	private WorkerSearchAlgo wsa;
 	
-	private TableColumn<Person, Integer> tc1;
-	private TableColumn<Person, String> tc2;
-	private TableColumn<Person, String> tc3;
-	private TableColumn<Person, Integer> tc4;
-	
-	private boolean editable;
-		
-	private TableViewConfig cfg;
-	
+	private TableColumn<Worker, Integer> tc1;
+	private TableColumn<Worker, String> tc2;
+	private TableColumn<Worker, String> tc3;
+	private TableColumn<Worker, Integer> tc4;
+	private TableColumn<Worker, Double> tc5;
+				
 	public PersonTableView(PersonTableFrame ptf) {
 		this.ptf = ptf;
-		this.wsa = this.ptf.getWSA();
+		this.wsa = this.ptf.getWorkerManager().getWSA();
 		
-		this.tc1 = new TableColumn<Person, Integer>("ID");
-		this.tc2 = new TableColumn<Person, String>("Vorname");
-		this.tc3 = new TableColumn<Person, String>("Nachname");
-		this.tc4 = new TableColumn<Person, Integer>("Alter");
-		
-		this.editable = true;
-		
-		this.cfg = this.ptf.getConfig();
-		
-		this.setItems(this.wsa.getLoadedPersons());
+		this.tc1 = new TableColumn<Worker, Integer>("ID");
+		this.tc2 = new TableColumn<Worker, String>("Vorname");
+		this.tc3 = new TableColumn<Worker, String>("Nachname");
+		this.tc4 = new TableColumn<Worker, Integer>("Alter");
+		this.tc5 = new TableColumn<Worker, Double>("Minusstunden");
+						
+		this.setItems(this.ptf.getWorkerManager().getWorkers());
 		
 		this.buildTable();
 	}
 	
 	private void buildTable() {
-		this.setEditable(this.editable);
+		this.setEditable(false);
 		
 		this.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 		
-		this.tc1.setCellValueFactory(new PropertyValueFactory<Person, Integer>("id"));
-		this.tc1.setCellFactory(TextFieldTableCell.forTableColumn(new IntegerStringConverter()));
-		this.tc1.setOnEditCommit(e -> {
-			if(e.getRowValue() != null) {
-				Person p = e.getRowValue();
-				
-				this.removeP(p);
-				
-				p.setId(e.getNewValue());
-				this.addP(p);
-				
-				this.ptf.getPersonSearchBox().updateSearchData();
-				
-				this.ptf.getDataBox().setData(p);
-			}
-		});
-		
-		
-		this.tc2.setCellValueFactory(new PropertyValueFactory<Person, String>("firstName"));
-		this.tc2.setCellFactory(TextFieldTableCell.forTableColumn());
-		this.tc2.setOnEditCommit(e -> {
-			if(e.getRowValue() != null) {
-				Person p = e.getRowValue();
-				
-				this.removeP(p);
-				
-				p.setFirstName(e.getNewValue());
-				this.addP(p);
-				
-				this.ptf.getPersonSearchBox().updateSearchData();
-				
-				this.ptf.getDataBox().setData(p);
-			}
-		});
-		
-		this.tc3.setCellValueFactory(new PropertyValueFactory<Person, String>("lastName"));
-		this.tc3.setCellFactory(TextFieldTableCell.forTableColumn());
-		this.tc3.setOnEditCommit(e -> {
-			if(e.getRowValue() != null) {
-				Person p = e.getRowValue();
-				
-				this.removeP(p);
-				
-				p.setLastName(e.getNewValue());
-				this.addP(p);
-				
-				this.ptf.getPersonSearchBox().updateSearchData();
-				
-				this.ptf.getDataBox().setData(p);
-			}
-		});
-		
-		this.tc4.setCellValueFactory(new PropertyValueFactory<Person, Integer>("age"));
-		this.tc4.setCellFactory(TextFieldTableCell.forTableColumn(new IntegerStringConverter()));
-		this.tc4.setOnEditCommit(e -> {
-			if(e.getRowValue() != null) {
-				Person p = e.getRowValue();
-				
-				this.removeP(p);
-				
-				p.setAge(e.getNewValue());
-				this.addP(p);
-				
-				this.ptf.getPersonSearchBox().updateSearchData();
-				
-				this.ptf.getDataBox().setData(p);
-			}
-		});
+		this.tc1.setCellValueFactory(new PropertyValueFactory<Worker, Integer>("id"));
+		this.tc2.setCellValueFactory(new PropertyValueFactory<Worker, String>("firstName"));
+		this.tc3.setCellValueFactory(new PropertyValueFactory<Worker, String>("lastName"));
+		this.tc4.setCellValueFactory(new PropertyValueFactory<Worker, Integer>("age"));
+		this.tc5.setCellValueFactory(new PropertyValueFactory<Worker, Double>("negHours"));
 		
 		this.setOnMouseClicked(e -> {
 			if(this.getSelectionModel().getSelectedItem() != null) {
-				Person p = this.getSelectionModel().getSelectedItem();
+				Worker p = this.getSelectionModel().getSelectedItem();
 				this.ptf.getDataBox().setData(p);
 			}
 		});
 		
 		this.setOnSort(e -> {
-			if(this.ptf.getPersonSearchBox().getWSA().hasSearchData()) {
+			if(this.wsa.hasSearchData()) {
 				this.ptf.getPersonSearchBox().updateSearchData();
 			}
 		});
 		
-		this.getColumns().addAll(tc1, tc2, tc3, tc4);
-	}
-	
-	public void changeEditable() {
-		if(this.editable) {
-			this.editable = false;
-		} else {
-			this.editable = true;
-		}
-		this.setEditable(this.editable);
-	}
-	
-	public void addP(Person p) {
-		if(!this.wsa.getLoadedPersons().contains(p)) {
-			this.wsa.addP(p);
-			this.updateComplete();
-		}
-	}
-	
-	public void removeP(Person p) {
-		if(this.wsa.getLoadedPersons().contains(p)) {
-			this.wsa.removeP(p);
-		}
+		this.getColumns().addAll(tc1, tc2, tc3, tc4, tc5);
 	}
 	
 	public void updateComplete() {
@@ -164,7 +73,7 @@ public class PersonTableView extends TableView<Person> {
 				this.setItems(this.wsa.sortTable());
 			}
 		} else {
-			ObservableList<Person> list = FXCollections.observableArrayList();
+			ObservableList<Worker> list = FXCollections.observableArrayList();
 			this.setItems(list);
 		}
 		
@@ -176,11 +85,8 @@ public class PersonTableView extends TableView<Person> {
 		return ptf;
 	}
 	
-	public TableViewConfig getConfig() {
-		return cfg;
-	}
 	
-	public ObservableList<Person> getItemsOfTable() {
+	public ObservableList<Worker> getItemsOfTable() {
 		return this.getItems();
 	}
 	

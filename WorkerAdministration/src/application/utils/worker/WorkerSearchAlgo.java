@@ -1,4 +1,4 @@
-package application.utils;
+package application.utils.worker;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,14 +9,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import application.utils.SearchType;
+import application.utils.SortType;
+import application.utils.Utils;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 public class WorkerSearchAlgo {
 	
-	private LoadedPathManager lpm;
+	private WorkerManager wm;
 	
-	private ObservableList<Person> loadedPersons;
+	private ObservableList<Worker> loadedPersons;
 	private String[] lastSearchData;
 	private int currentSearchMatches;
 	
@@ -24,62 +27,66 @@ public class WorkerSearchAlgo {
 	
 	private ExecutorService exe;
 		
-	public WorkerSearchAlgo(LoadedPathManager l) {
-		this.lpm = l;
+	public WorkerSearchAlgo(WorkerManager wm) {
+		this.wm = wm;
 		
-		this.lastSearchData = new String[4];
+		this.lastSearchData = new String[5];
 		this.currentSearchMatches = 0;
 		
 		this.currentSortType = SortType.BY_ID;
 		
 		this.loadedPersons = Utils.sortPersons(this.currentSortType,
-				this.lpm.getDataOutOfAllFiles());
+				this.wm.getWorkers());
 		
 		this.exe = Executors.newCachedThreadPool();
 	}
 	
-	public ObservableList<Person> searchForData() {
+	public ObservableList<Worker> searchForData() {
 		try {
-			Future<ObservableList<Person>> future = 
-					this.exe.submit(new Callable<ObservableList<Person>>() {
+			Future<ObservableList<Worker>> future = 
+					this.exe.submit(new Callable<ObservableList<Worker>>() {
 				
 					@Override
-					public ObservableList<Person> call() throws Exception {
+					public ObservableList<Worker> call() throws Exception {
 						
-						ObservableList<Person> tempList = FXCollections.observableArrayList();
-						HashMap<Person, Integer> tempMap = new HashMap<Person, Integer>();
+						ObservableList<Worker> tempList = FXCollections.observableArrayList();
+						HashMap<Worker, Integer> tempMap = new HashMap<Worker, Integer>();
 							
-						ArrayList<Person> list1 = new ArrayList<Person>();
-						ArrayList<Person> list2 = new ArrayList<Person>();
-						ArrayList<Person> list3 = new ArrayList<Person>();
-						ArrayList<Person> list4 = new ArrayList<Person>();
+						ArrayList<Worker> list1 = new ArrayList<Worker>();
+						ArrayList<Worker> list2 = new ArrayList<Worker>();
+						ArrayList<Worker> list3 = new ArrayList<Worker>();
+						ArrayList<Worker> list4 = new ArrayList<Worker>();
+						ArrayList<Worker> list5 = new ArrayList<Worker>();
 							
-						ArrayList<Person> noMatch = new ArrayList<Person>();
+						ArrayList<Worker> noMatch = new ArrayList<Worker>();
 							
-						// data String 0 = id; 1 = vorname; 2 = nachname; 3 = alter
+						// data String 0 = id; 1 = vorname; 2 = nachname; 3 = alter 4 = minusstd
 							
 						if(lastSearchData != null) {
 							for(int i1 = 0; i1 < loadedPersons.size(); i1++) {
-								Person p = loadedPersons.get(i1);
+								if(loadedPersons.get(i1) != null) {
+									Worker w = loadedPersons.get(i1);
 									
-								if(!tempMap.containsKey(p)) {
-										
-									String[] dataCheck = {String.valueOf(p.getId()), 
-											p.getFirstName(), p.getLastName(), 
-											String.valueOf(p.getAge())};
-										
-									int[] compares = compareInInt(dataCheck, lastSearchData);
-									int o = 0;
-										
-									for(int i = 0; i < compares.length; i++) {
+									if(!tempMap.containsKey(w)) {
 											
-										if(compares[i] == 0) {
-											o++;
-										} else if(compares[i] == 2) {
-											noMatch.add(p);
+										String[] dataCheck = {String.valueOf(w.getId()), 
+												w.getFirstName(), w.getLastName(), 
+												String.valueOf(w.getAge()), 
+												String.valueOf(w.getNegHours())};
+											
+										int[] compares = compareInInt(dataCheck, lastSearchData);
+										int o = 0;
+											
+										for(int i = 0; i < compares.length; i++) {
+												
+											if(compares[i] == 0) {
+												o++;
+											} else if(compares[i] == 2) {
+												noMatch.add(w);
+											}
 										}
+										tempMap.put(w, o);
 									}
-									tempMap.put(p, o);
 								}
 							}
 								
@@ -89,15 +96,17 @@ public class WorkerSearchAlgo {
 								}
 							});
 								
-							for(Map.Entry<Person, Integer> entry : tempMap.entrySet()) {
-								if(entry.getValue() == 4) {
+							for(Map.Entry<Worker, Integer> entry : tempMap.entrySet()) {
+								if(entry.getValue() == 5) {
 									list1.add(entry.getKey());
-								} else if(entry.getValue() == 3) {
+								} else if(entry.getValue() == 4) {
 									list2.add(entry.getKey());
-								} else if(entry.getValue() == 2) {
+								} else if(entry.getValue() == 3) {
 									list3.add(entry.getKey());
-								} else if(entry.getValue() == 1) {
+								} else if(entry.getValue() == 2) {
 									list4.add(entry.getKey());
+								} else if(entry.getValue() == 1) {
+									list5.add(entry.getKey());
 								}
 							}
 								
@@ -112,6 +121,10 @@ public class WorkerSearchAlgo {
 									} else {
 										if(list4.size() > 0) {
 											list4.forEach(e -> tempList.add(e));
+										} else {
+											if(list5.size() > 0) {
+												list5.forEach(e -> tempList.add(e));
+											}
 										}
 									}
 								}
@@ -132,7 +145,7 @@ public class WorkerSearchAlgo {
 	}
 	
 	public int[] compareInInt(String[] d1, String[] d2) {
-		int[] o = new int[4];
+		int[] o = new int[5];
 		int i = 0;
 		
 		while(i < d1.length) {
@@ -169,12 +182,12 @@ public class WorkerSearchAlgo {
 		return b;
 	}
 	
-	public ObservableList<Person> sortTable() {
+	public ObservableList<Worker> sortTable() {
 		return this.sortTable(this.currentSortType);
 	}
 	
-	public ObservableList<Person> sortTable(SortType type) {
-		ObservableList<Person> list = FXCollections.observableArrayList();
+	public ObservableList<Worker> sortTable(SortType type) {
+		ObservableList<Worker> list = FXCollections.observableArrayList();
 		
 		if(type != null) {
 			this.currentSortType = type;
@@ -190,62 +203,18 @@ public class WorkerSearchAlgo {
 		return list;
 	}
 	
+	public void updateWorkerData() {
+		if(this.wm.getWorkers() != null && this.wm.getWorkers().size() > 0) {
+			this.loadedPersons = this.wm.getWorkers();
+			this.updateSearchMatches();
+		}
+	}
+	
 	public void updateSearchMatches() {
 		if(!this.hasSearchData()) {
 			this.currentSearchMatches = this.loadedPersons.size();
 		} else {
 			this.currentSearchMatches = this.searchForData().size();
-		}
-	}
-	
-	public void addPAsList(ObservableList<Person> list) {
-		if(list != null) {
-			if(this.loadedPersons.size() > 0) {
-				Iterator<Person> it = list.iterator();
-				
-				while(it.hasNext()) {
-					if(!this.loadedPersons.contains(it.next())) {
-						this.loadedPersons.add(it.next());
-					}
-				}
-			} else {
-				this.loadedPersons = list;
-			}
-			
-			this.updateSearchMatches();
-		}
-	}
-	
-	public void addP(Person p) {
-		if(!this.loadedPersons.contains(p)) {
-			this.loadedPersons.add(p);
-			this.updateSearchMatches();
-		}
-	}
-	
-	public void removePAsList(ObservableList<Person> list) {
-		if(list != null && this.loadedPersons != null && this.loadedPersons.size() > 0) {
-			Iterator<Person> it = this.loadedPersons.iterator();
-			
-			while(it.hasNext()) {
-				if(list.contains(it.next())) {
-					it.remove();
-				}
-			}
-			
-			this.updateSearchMatches();
-		}
-	}
-	
-	public void removeP(Person p) {
-		if(this.loadedPersons.contains(p)) {
-			for(int i = 0; i < this.loadedPersons.size(); i++) {
-				if(this.loadedPersons.get(i).equals(p)) {
-					this.loadedPersons.remove(i);
-				}
-			}
-			
-			this.updateSearchMatches();
 		}
 	}
 	
@@ -271,7 +240,7 @@ public class WorkerSearchAlgo {
 		return currentSortType;
 	}
 	
-	public ObservableList<Person> getLoadedPersons(){
+	public ObservableList<Worker> getLoadedPersons(){
 		return loadedPersons;
 	}
 	

@@ -2,7 +2,7 @@ package application.ptv;
 
 import application.utils.SearchType;
 import application.utils.SortType;
-import application.utils.WorkerSearchAlgo;
+import application.utils.worker.WorkerSearchAlgo;
 import javafx.geometry.Insets;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
@@ -13,6 +13,7 @@ import javafx.scene.layout.Priority;
 
 public class PersonSearchBox extends HBox {
 	
+	private PersonTableFrame ptf;
 	private PersonTableView ptv;
 	private WorkerSearchAlgo wsa;
 	
@@ -20,29 +21,34 @@ public class PersonSearchBox extends HBox {
 	private TextField tf2;
 	private TextField tf3;
 	private TextField tf4;
+	private TextField tf5;
 	
 	private MenuButton mb;
 	private MenuItem mi1;
 	private MenuItem mi2;
 	private MenuItem mi3;
 	private MenuItem mi4;
+	private MenuItem mi5;
 	
-	public PersonSearchBox(PersonTableView tv, WorkerSearchAlgo wsa) {
-		this.ptv = tv;		
-		this.wsa = wsa;
+	public PersonSearchBox(PersonTableFrame ptf) {
+		this.ptf = ptf;
+		this.ptv = this.ptf.getPtv();
+		this.wsa = this.ptf.getWorkerManager().getWSA();
 		
 		this.tf1 = new TextField();
 		this.tf2 = new TextField();
 		this.tf3 = new TextField();
 		this.tf4 = new TextField();
+		this.tf5 = new TextField();
 		
 		this.mb = new MenuButton("Sortierung");
 		this.mi1 = new MenuItem("Nach " + SortType.BY_ID.toString());
 		this.mi2 = new MenuItem("Nach " + SortType.ALPHABETICALLY_BY_FIRSTNAME.toString());
 		this.mi3 = new MenuItem("Nach " + SortType.ALPHABETICALLY_BY_LASTNAME.toString());
 		this.mi4 = new MenuItem("Nach " + SortType.BY_AGE.toString());
+		this.mi5 = new MenuItem("Nach " + SortType.NEG_HOURS);
 		
-		this.wsa.updateSearchMatches();
+		this.ptf.getWorkerManager().getWSA().updateSearchMatches();
 		
 		this.buildBox();
 	}
@@ -52,27 +58,31 @@ public class PersonSearchBox extends HBox {
 		this.tf2.setPromptText("Vorname");
 		this.tf3.setPromptText("Nachname");
 		this.tf4.setPromptText("Alter");
+		this.tf5.setPromptText("Minusstunden");
 		
 		this.tf1.setMaxWidth(150);
 		this.tf2.setMaxWidth(150);
 		this.tf3.setMaxWidth(150);
 		this.tf4.setMaxWidth(150);
+		this.tf5.setMaxWidth(150);
 		this.mb.setMaxWidth(150);
 		
 		HBox.setMargin(tf1, new Insets(10));
 		HBox.setMargin(tf2, new Insets(10));
 		HBox.setMargin(tf3, new Insets(10));
 		HBox.setMargin(tf4, new Insets(10));
+		HBox.setMargin(tf5, new Insets(10));
 		HBox.setMargin(mb, new Insets(10));
 		HBox.setHgrow(tf1, Priority.ALWAYS);
 		HBox.setHgrow(tf2, Priority.ALWAYS);
 		HBox.setHgrow(tf3, Priority.ALWAYS);
 		HBox.setHgrow(tf4, Priority.ALWAYS);
+		HBox.setHgrow(tf5, Priority.ALWAYS);
 		HBox.setHgrow(mb, Priority.ALWAYS);
 
 		
-		this.mb.getItems().addAll(mi1, mi2, mi3, mi4);
-		this.getChildren().addAll(tf1, tf2, tf3, tf4, mb);
+		this.mb.getItems().addAll(mi1, mi2, mi3, mi4, mi5);
+		this.getChildren().addAll(tf1, tf2, tf3, tf4, tf5, mb);
 		
 		this.tf1.setOnKeyPressed(e -> {
 			if(e.getText() != "" && e.getText() != null) {
@@ -98,31 +108,44 @@ public class PersonSearchBox extends HBox {
 			}
 		});
 		
+		this.tf5.setOnKeyPressed(e -> {
+			if(e.getText() != "" && e.getText() != null) {
+				this.keyPressed(this.tf5, e.getCode(), SearchType.NEG_HOURS, e.getText());
+			}
+		});
+		
 		this.mi1.setOnAction(e -> {
-			if(this.ptv != null && this.wsa.getLoadedPersons() != null) {
+			if(this.ptv != null && this.wsa != null) {
 				this.sortTable(SortType.BY_ID);
 				this.mb.setText(this.mi1.getText());
 			}
 		});
 		
 		this.mi2.setOnAction(e -> {
-			if(this.ptv != null && this.wsa.getLoadedPersons() != null) {
+			if(this.ptv != null && this.wsa != null) {
 				this.sortTable(SortType.ALPHABETICALLY_BY_FIRSTNAME);
 				this.mb.setText(this.mi2.getText());
 			}
 		});
 		
 		this.mi3.setOnAction(e -> {
-			if(this.ptv != null && this.wsa.getLoadedPersons() != null) {
+			if(this.ptv != null && this.wsa != null) {
 				this.sortTable(SortType.ALPHABETICALLY_BY_LASTNAME);
 				this.mb.setText(this.mi3.getText());
 			}
 		});
 		
 		this.mi4.setOnAction(e -> {
-			if(this.ptv != null && this.wsa.getLoadedPersons() != null) {
+			if(this.ptv != null && this.wsa != null) {
 				this.sortTable(SortType.BY_AGE);
 				this.mb.setText(this.mi4.getText());
+			}
+		});
+		
+		this.mi5.setOnAction(e -> {
+			if(this.ptv != null && this.wsa != null) {
+				this.sortTable(SortType.NEG_HOURS);
+				this.mb.setText(this.mi5.getText());
 			}
 		});
 	}

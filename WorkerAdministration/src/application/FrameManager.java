@@ -3,10 +3,12 @@ package application;
 import application.mf.MainFrame;
 import application.ptv.PersonTableFrame;
 import application.utils.FrameType;
+import application.utils.worker.WorkerManager;
 import javafx.scene.Scene;
 
 public class FrameManager {
 		
+	private WorkerManager wm;
 	private MainFrame mf;
 	private PersonTableFrame ptf;
 	
@@ -18,6 +20,7 @@ public class FrameManager {
 	private Scene scene;
 	
 	public FrameManager(double width, double height) {
+		this.wm = new WorkerManager();
 		this.mf = new MainFrame();
 		this.ptf = new PersonTableFrame(this);
 		
@@ -73,5 +76,9 @@ public class FrameManager {
 	
 	public Scene getScene() {
 		return scene;
+	}
+	
+	public WorkerManager getWorkerManager() {
+		return wm;
 	}
 }

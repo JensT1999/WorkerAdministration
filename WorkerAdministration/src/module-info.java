@@ -6,6 +6,9 @@ module WorkerAdministration {
 	opens application.utils to javafx.graphics, javafx.fxml, javafx.base;
 	opens application.ptv to javafx.graphics, javafx.fxml, javafx.base;
 	opens application.mf to javafx.graphics, javafx.fxml, javafx.base;
-	opens application.wpc to javafx.graphics, javafx.fxml, javafx.base;
+	opens application.utils.worker to javafx.graphics, javafx.fxml, javafx.base;
+	opens application.utils.test to javafx.graphics, javafx.fxml, javafx.base;
+
+//	opens application.wpc to javafx.graphics, javafx.fxml, javafx.base;
 
 }

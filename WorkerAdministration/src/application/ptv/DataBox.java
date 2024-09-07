@@ -1,13 +1,13 @@
 package application.ptv;
 
-import application.utils.Person;
+import application.utils.worker.Worker;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 
 public class DataBox extends HBox {
 	
-	private PersonTableView ptv;
+	private PersonTableFrame ptf;
 	
 	private Label l1;
 	private Label l2;
@@ -15,8 +15,8 @@ public class DataBox extends HBox {
 	private Label l4;
 	private Label l5;
 	
-	public DataBox(PersonTableView tv) {
-		this.ptv = tv;
+	public DataBox(PersonTableFrame ptf) {
+		this.ptf = ptf;
 		
 		this.l1 = new Label();
 		this.l2 = new Label();
@@ -45,7 +45,7 @@ public class DataBox extends HBox {
 		this.setCurrentSearchMatches();
 	}
 	
-	public void setData(Person p) {
+	public void setData(Worker p) {
 		if(p != null) {
 			this.l1.setText(String.valueOf(p.getId()));
 			this.l2.setText(p.getFirstName());
@@ -65,7 +65,6 @@ public class DataBox extends HBox {
 	}
 	
 	public void setCurrentSearchMatches() {
-		this.l5.setText("Ergebnisse: " + this.ptv.
-				getFrame().getPersonSearchBox().getCurrentSearchMatches());
+		this.l5.setText("Ergebnisse: " + this.ptf.getWorkerManager().getWSA().getSearchMatches());
 	}	
 }
