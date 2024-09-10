@@ -68,6 +68,11 @@ public class HourCalcTest {
 			System.out.println(this.hc.calculateHoursOfWeek(TestMonth.JANUARY, 1));
 			System.out.println(this.hc.calculateHoursForMonth(TestMonth.JANUARY));
 			System.out.println(this.hc.calculateHoursOfYear());
+			double[] o = this.hc.getHoursOfLastThreeWeeks();
+			
+			for(int i = 0; i < o.length; i++) {
+				System.out.println(o[i]);
+			}
 		}
 	}
 	
