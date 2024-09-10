@@ -205,8 +205,10 @@ public class WorkerSearchAlgo {
 	
 	public void updateWorkerData() {
 		if(this.wm.getWorkers() != null && this.wm.getWorkers().size() > 0) {
-			this.loadedPersons = this.wm.getWorkers();
-			this.updateSearchMatches();
+			synchronized (this.wm.getWorkers()) {
+				this.loadedPersons = this.wm.getWorkers();
+				this.updateSearchMatches();
+			}
 		}
 	}
 	

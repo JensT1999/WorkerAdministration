@@ -11,7 +11,7 @@ public class Main extends Application {
 	
 	@Override
 	public void init() throws Exception {
-		this.fm = new FrameManager(900, 500);
+		this.fm = new FrameManager(1200, 600);
 		this.scene = this.fm.getScene();
 	}
 	

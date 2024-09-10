@@ -136,6 +136,7 @@ public class WorkerDataBox extends HBox {
 				
 				this.w.saveFileData();
 				this.loadData();
+				this.ptf.getDataBox().setData(w);
 			}
 		});
 	}

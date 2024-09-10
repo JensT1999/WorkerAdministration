@@ -17,8 +17,9 @@ public class Worker {
 	private double nHours;
 	private WorkerFolder wF;
 	private WorkerFile wFi;
-//	private WorkCalculator wHw;
+//	private WorkCalculator wHc;
 //	private HourCalc hc;
+	
 	
 	public Worker(WorkerFile file) {
 		this.wFi = file;
@@ -27,7 +28,7 @@ public class Worker {
 		this.lastName = this.wFi.getLastName();
 		this.birthday = new Birthday(this.wFi.getBirthday());
 		this.wF = new WorkerFolder(this);
-//		this.hc = new HourCalc(this.wF);
+//		this.hc = new HourCalc(this);
 	}
 	
 	public Worker(int id, String fName, String lName, String bd) {
@@ -40,7 +41,7 @@ public class Worker {
 	
 	public void create() {
 		this.wFi = new WorkerFile(this);
-//		this.hc = new HourCalc(this.wF);
+//		this.hc = new HourCalc(this);
 	}
 
 	public String getFirstName() {

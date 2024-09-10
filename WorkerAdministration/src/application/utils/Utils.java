@@ -131,4 +131,32 @@ public class Utils {
 		
 		return false;
 	}
+	
+	public static String doubleArrayToString(double[] input) {
+		String str = "";
+		if(input != null) {
+			for(int i = 0; i < input.length; i++) {
+				if(i + 1 < input.length) {
+					str += String.valueOf(input[i]) + ",";
+				} else {
+					str += String.valueOf(input[i]);
+				}
+			}
+		}
+		return str;
+	}
+	
+	public static String stringArrayToString(String[] input) {
+		String str = "";
+		if(input != null) {
+			for(int i = 0; i < input.length; i++) {
+				if(i + 1 < input.length) {
+					str += input[i] + ",";
+				} else {
+					str += input[i];
+				}
+			}
+		}
+		return str;
+	}
 }

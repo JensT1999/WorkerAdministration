@@ -2,9 +2,11 @@ package application.utils.worker;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Collections;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import application.utils.FileManager;
 import javafx.collections.FXCollections;
@@ -17,7 +19,7 @@ public class WorkerManager {
 	
 	private ExecutorService exe;
 	
-	private ObservableList<Worker> workers;
+	private volatile ObservableList<Worker> workers;
 	
 	private WorkerSearchAlgo wsa;
 	
@@ -31,9 +33,7 @@ public class WorkerManager {
 		this.cfgPath = "C:\\Users\\ctrap\\Desktop\\test\\workadministration\\config.yml";
 		
 		this.exe = Executors.newCachedThreadPool();
-		
-		this.workers = FXCollections.observableArrayList();
-		
+				
 		File file = new File(this.dirPath);
 		
 		if(!file.exists()) {
@@ -46,15 +46,21 @@ public class WorkerManager {
 			String[] standardFile = new String[3];
 			
 			standardFile[0] = "LetzteID: 0";
-			standardFile[1] = "Mitarbeiterzahl: 0";
-			standardFile[2] = "Data-Separator: ,";
+			standardFile[1] = "Data-Separator: ,";
 			
 			FileManager.writeToFile(this.cfgPath, standardFile);
 		}
 		
 		this.loadCfg();
 		
-		this.loadAllWorkers();
+		if(this.hasWorkers()) {
+			this.workers = FXCollections.synchronizedObservableList(this.loadAllWorkers());
+		} else {
+			this.workers = 
+					FXCollections.observableArrayList(Collections.synchronizedCollection(new ArrayList<Worker>()));
+		}
+		
+		this.activeWorkers = this.getActiveWorker();
 		
 		this.wsa = new WorkerSearchAlgo(this);		
 	}
@@ -65,8 +71,7 @@ public class WorkerManager {
 			String[] file = new String[3];
 			
 			file[0] = "LetzteID: " + String.valueOf(this.lastID);
-			file[1] = "Mitarbeiterzahl: " + String.valueOf(this.activeWorkers);
-			file[2] = "Data-Separator: " + this.datasepartor;
+			file[1] = "Data-Separator: " + this.datasepartor;
 			
 			FileManager.writeToFile(this.cfgPath, file);
 		}
@@ -74,17 +79,19 @@ public class WorkerManager {
 	
 	public void createWorker(NewWorker nw) {
 		if(nw != null && this.workers != null) {
-			Worker w = new Worker(this.lastID + 1, nw.getFirstName(),
-					nw.getLastName(), nw.getBirthday());
-			
-			if(!this.workers.contains(w)) {
-				this.workers.add(w);
-				w.create();
-				this.lastID++;
-				this.activeWorkers++;
-				this.wsa.updateWorkerData();
+			synchronized (this.workers) {
+				Worker w = new Worker(this.lastID + 1, nw.getFirstName(),
+						nw.getLastName(), nw.getBirthday());
 				
-				this.saveCfg();
+				if(!this.workers.contains(w)) {
+					this.workers.add(w);
+					w.create();
+					this.lastID++;
+					this.activeWorkers++;
+					this.wsa.updateWorkerData();
+					
+					this.saveCfg();
+				}
 			}
 		}
 	}
@@ -112,14 +119,16 @@ public class WorkerManager {
 		}
 	}
 	
-	public void convertFileIntoData(String path) {
-		try {
-			this.exe.submit(new Runnable() {
-				
-				@Override
-				public void run() {
-					if(path != null && FileManager.exists(path)) {
+	public boolean convertFile(String path) {
+		if(path != null && path != "" && FileManager.exists(path)) {
+			try {
+				Future<Boolean> future = 
+						this.exe.submit(new Callable<Boolean>() {
+
+					@Override
+					public Boolean call() throws Exception {
 						ArrayList<String> list = FileManager.readFileAsList(path);
+						boolean b = false;
 						
 						if(list != null && list.size() > 0) {
 							list.forEach(w -> {
@@ -130,16 +139,20 @@ public class WorkerManager {
 										createWorker(nw);
 									}
 								}
-							});				
+							});
+							
+							b = true;
 						}
-					}					
-				}
-			});
-		} catch(Exception e) {
-			e.printStackTrace();
+						return b;
+					}
+				});		
+				return future.get();
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
 		}
+		return false;
 	}
-	
 	
 	public Worker getWorkerBYID(int id) {
 		Worker w = null;
@@ -196,27 +209,45 @@ public class WorkerManager {
 		return workers;
 	}
 	
-	private void loadAllWorkers() {
-		if(this.dirPath != null) {
-			File file = new File(this.dirPath);
+	private ObservableList<Worker> loadAllWorkers() {
+		try {
 			
-			if(file != null) {
-				for(File files : file.listFiles()) {
-					if(files.isDirectory()) {
-						WorkerFile wFile = 
-								new WorkerFile(Integer.valueOf(files.getName()));
+			Future<ObservableList<Worker>> future = this.exe.submit(new Callable<ObservableList<Worker>>() {
+
+				@Override
+				public ObservableList<Worker> call() throws Exception {
+					
+					ObservableList<Worker> tempList = FXCollections.observableArrayList();
+					
+					if(dirPath != null) {
+						File file = new File(dirPath);
 						
-						if(wFile != null) {
-							Worker w = new Worker(wFile);
-							
-							if(!this.workers.contains(w)) {
-								this.workers.add(w);
-							}
+						if(file != null) {
+							for(File files : file.listFiles()) {
+								if(files.isDirectory()) {
+									WorkerFile wFile = 
+											new WorkerFile(Integer.valueOf(files.getName()));
+									
+									if(wFile != null) {
+										Worker w = new Worker(wFile);
+										
+										if(w != null) {
+											tempList.add(w);
+										}
+									}
+								}
+							}							
 						}
 					}
-				}							
-			}
+					return tempList;
+				}
+			});
+			
+			return future.get();
+		} catch(Exception e) {
+			e.printStackTrace();
 		}
+		return null;
 	}
 	
 	private void loadCfg() {
@@ -252,5 +283,28 @@ public class WorkerManager {
 				}
 			}
 		}
+	}
+	
+	private boolean hasWorkers() {
+		if(this.dirPath != null) {
+			File file = new File(this.dirPath);
+			
+			if(file != null && file.listFiles().length > 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private int getActiveWorker() {
+		if(this.dirPath != null) {
+			File file = new File(this.dirPath);
+			
+			if(file != null) {
+				return file.listFiles().length;
+			}
+		}
+		
+		return 0;
 	}
 }

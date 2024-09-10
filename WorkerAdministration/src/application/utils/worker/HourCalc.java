@@ -3,126 +3,55 @@ package application.utils.worker;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import application.utils.Days;
 import application.utils.FileManager;
+import application.utils.MapStringConverter;
 import application.utils.test.TestMonth;
 
 public class HourCalc {
 	
-	private LinkedHashMap<String, double[]> weeks;
-	private LinkedHashMap<String, double[]> weekends;
+	private Worker worker;
+		
+	private Map<String, String[]> dateOfWeeks;
+	private Map<String, double[]> weeks;
+	private Map<String, String[]> dateOfWeekends;
+	private Map<String, double[]> weekends;
+	
+	private MapStringConverter msc;
 	
 	private String path;
 	
-	private Days tD = Days.MONDAY;
+	private Days tD = Days.TUESDAY;
 	private TestMonth tM = TestMonth.MARCH;
 	
-	public HourCalc(WorkerFolder wf) {
-		this.weeks = new LinkedHashMap<String, double[]>();
-		this.weekends = new LinkedHashMap<String, double[]>();
+	public HourCalc(Worker w) {
+		this.worker = w;
 		
-		this.path = wf.getHourPath();
+		this.dateOfWeeks = Collections.synchronizedMap(new LinkedHashMap<String, String[]>());
+		this.weeks = Collections.synchronizedMap(new LinkedHashMap<String, double[]>());
+		this.dateOfWeekends = Collections.synchronizedMap(new LinkedHashMap<String, String[]>());
+		this.weekends = Collections.synchronizedMap(new LinkedHashMap<String, double[]>());
+		
+		this.msc = new MapStringConverter();
+		
+		this.path = this.worker.getFolder().getHourPath();
 		
 		this.loadData();
-	}
-	
-	public void loadData() {
-		if(!FileManager.exists(path)) {
-			FileManager.createFile(path);
-		} else {
-			ArrayList<String> list = FileManager.readFileAsList(path);
-						
-			list.forEach(e -> {
-				if(e != null && e != "") {
-					String text = e.toLowerCase();
-					if(text.contains("jry_week_")) {
-						this.fillMonth(text);	
-					} else if(text.contains("feb_week_")) {
-						this.fillMonth(text);
-					} else if(text.contains("mar_week_")) {
-						this.fillMonth(text);
-					} else if(text.contains("apr_week_")) {
-						this.fillMonth(text);
-					} else if(text.contains("may_week_")) {
-						this.fillMonth(text);
-					} else if(text.contains("jun_week_")) {
-						this.fillMonth(text);
-					} else if(text.contains("jul_week_")) {
-						this.fillMonth(text);
-					} else if(text.contains("aug_week_")) {
-						this.fillMonth(text);
-					} else if(text.contains("sep_week_")) {
-						this.fillMonth(text);
-					} else if(text.contains("oct_week_")) {
-						this.fillMonth(text);
-					} else if(text.contains("nov_week_")) {
-						this.fillMonth(text);
-					} else if(text.contains("dec_week_")) {
-						this.fillMonth(text);
-					}
-				}
-			});			
-		}
-	}
-	
-	public void fillMonth(String s) {
-		if(s != null && s != "" && this.weeks != null) {
-			String[] split = s.split(" : ");
-			double[] workedHours = new double[5];
-			double[] workedHoursOnWe = new double[2];
-			
-			String[] split1 = split[1].split("/");
-
-			if(split1[0].contains("[") && split1[0].contains("]")) {
-				String weekHours = split1[0].replace("[", "").replace("]", "");
-				
-				String[] split2 = weekHours.split(",");
-				
-				for(int i = 0; i < split2.length; i++) {
-					if(split2[i] != null) {
-						workedHours[i] = Double.valueOf(split2[i]);
-					}
-				}
-			}
-			
-			if(split1[1].contains("[") && split1[1].contains("]")) {
-				String weHours = split1[1].replace("[", "").replace("]", "");
-				String[] split2 = weHours.split(",");
-				for(int i = 0; i < split2.length; i++) {
-					if(split2[i] != null) {
-						workedHoursOnWe[i] = Double.valueOf(split2[i]);
-					}
-				}
-			}
-			
-			this.weeks.put(split[0], workedHours);
-			this.weekends.put(split[0], workedHoursOnWe);
-		}
 	}
 	
 	public void saveData() {
 		if(FileManager.exists(this.path)) {
 			FileManager.clearFile(path);
-			ArrayList<String> list = new ArrayList<String>();
-									
-			for(Map.Entry<String, double[]> entry : this.weeks.entrySet()) {
-				if(entry != null && entry.getKey() != null && entry.getKey() != "" &&
-						entry.getValue() != null) {
-					String weekString = entry.getKey().toUpperCase();
-					String weekHours = "[" + this.doubleArrayToString(entry.getValue()) +
-							"]";
-					double[] weHours = this.weekends.get(entry.getKey());
-					
-					String weString = "[" + this.doubleArrayToString(weHours) + "]";
-					
-					String finishedString = weekString + " : " + weekHours + "/" + weString;
-					
-					list.add(finishedString);
-				}
-			}
+			ArrayList<String> dateData = this.msc.convertMapWithString(this.dateOfWeeks,
+					this.dateOfWeekends);
+			ArrayList<String> hourData = this.msc.convertMapWithDouble(this.weeks,
+					this.weekends);
+			ArrayList<String> list = (ArrayList<String>) 
+					this.msc.combineLists(hourData, dateData);
 			
 			FileManager.writeToFile(this.path, list);
 		}
@@ -168,97 +97,13 @@ public class HourCalc {
 		}
 	}
 	
-	public void setData(TestMonth m, String latestWeek, double wH) {
-		if(this.weeks != null && wH != 0 && this.weeks.size() > 0 && latestWeek != null) {
-			String[] s = latestWeek.split("_");
-//			Month tM = LocalDate.now().getMonth();
-//			DayOfWeek tD = LocalDate.now().getDayOfWeek();
-			
-			if(m.equals(tM)) {
-				if(tD.equals(Days.SATURDAY) || tD.equals(Days.SUNDAY)) {
-					System.out.println("test");
-					if(this.weekends.get(latestWeek) != null) {
-						double[] weHours = this.weekends.get(latestWeek);
-						weHours[tD.getID()] = wH;
-						this.weekends.put(latestWeek, weHours);
-					} else {
-						double[] weHours = new double[2];
-						weHours[tD.getID()] = wH;
-						this.weekends.put(latestWeek, weHours);
-					}
-				} else {					
-					if(tD.equals(Days.MONDAY)) {
-						double[] weekHours = new double[5];
-						double[] weHours = new double[2];
-						String newWeek = s[0] + "_" + s[1] + "_" + (Integer.valueOf(s[2]) + 1);
-						weekHours[tD.getID()] = wH;
-						this.weeks.put(newWeek, weekHours);
-						this.weekends.put(newWeek, weHours);
-					} else {
-						double[] weekHours = this.weeks.get(latestWeek);
-						double[] weHours = this.weekends.get(latestWeek);
-						weekHours[tD.getID()] = wH;
-						this.weeks.put(latestWeek, weekHours);
-						this.weekends.put(latestWeek, weHours);
-					}
-				}
-			} else if(tM.equals(this.getNextMonth(m))) {
-				if(!this.weeks.containsKey(this.getWeekString(tM, 1)) &&
-						!this.weekends.containsKey(this.getWeekString(tM, 1))) {
-					double[] weekHours = new double[5];
-					double[] weHours = new double[2];
-					String newWeek = this.getWeekString(tM, 1);
-					if(!tD.equals(Days.SATURDAY) || !tD.equals(Days.SUNDAY)) {
-						weekHours[tD.getID()] = wH;
-					} else {
-						weHours[tD.getID()] = wH;
-					}
-					this.weeks.put(newWeek, weekHours);
-					this.weekends.put(newWeek, weHours);
-				} else {
-					double[] weekHours = this.weeks.get(latestWeek);
-					double[] weHours = this.weekends.get(latestWeek);
-					if(!tD.equals(Days.SATURDAY) || !tD.equals(Days.SUNDAY)) {
-						weekHours[tD.getID()] = wH;
-					} else {
-						weHours[tD.getID()] = wH;
-					}
-					this.weeks.put(latestWeek, weekHours);
-					this.weekends.put(latestWeek, weHours);
-				}
-			}
-		}
-	}
-	
-	public void printFirstWeek(TestMonth m, double wH) {
-		if(this.weeks != null && this.weeks.size() <= 0 &&
-				this.weekends != null && this.weekends.size() <= 0) {
-//			Month tM = LocalDate.now().getMonth();
-//			DayOfWeek tD = LocalDate.now().getDayOfWeek();
-			
-			String firstWeek = this.getWeekString(m, 1);
-			double[] weekHours = new double[5];
-			double[] weHours = new double[2];
-			
-			if(!tD.equals(Days.SATURDAY) || !tD.equals(Days.SUNDAY)) {
-				weekHours[tD.getID()] = wH;
-			} else {
-				weHours[tD.getID()] = wH;
-			}
-			
-			this.weeks.put(firstWeek, weekHours);
-			this.weekends.put(firstWeek, weHours);
-		}
-	}
-	
 	public void setDataForDayInWeek(TestMonth m, int week, Days d, double wH) {
 		if(m != null && week != 0 && wH != 0) {
 			if(this.weeks != null && this.weeks.size() > 0 &&
-					this.weekends != null && this.weekends.size() > 0) {
+					this.weekends != null && this.weekends.size() > 0) {	
 				if(this.weeks.containsKey(this.getWeekString(m, week).toLowerCase()) &&
 						this.weekends.containsKey(this.getWeekString(m, week).toLowerCase())) {
-					String weekString = this.getWeekString(m, week).toLowerCase();
-					
+					String weekString = this.getWeekString(m, week).toLowerCase();										
 					if(this.weeks.get(weekString) != null && this.weekends.get(weekString) != null) {
 						if(d.equals(Days.SATURDAY) || d.equals(Days.SUNDAY)) {
 							double[] weHours = this.weekends.get(weekString);
@@ -293,7 +138,7 @@ public class HourCalc {
 		return hours;
 	}
 	
-	public double getMonthHours(String month) {
+	private double getMonthHours(String month) {
 		double completeHours = 0;
 		
 		if(this.weeks != null && this.weeks.size() > 0 &&
@@ -353,25 +198,7 @@ public class HourCalc {
 		return completeHours;
 	}
 	
-	public TestMonth getNextMonth(TestMonth m) {
-		TestMonth tM = switch (m) {
-			case TestMonth.JANUARY -> TestMonth.FEBRUARY;
-			case TestMonth.FEBRUARY -> TestMonth.MARCH;
-			case TestMonth.MARCH -> TestMonth.APRIL;
-			case TestMonth.APRIL -> TestMonth.MAY;
-			case TestMonth.MAY -> TestMonth.JUNE;
-			case TestMonth.JUNE -> TestMonth.JULY;
-			case TestMonth.JULY -> TestMonth.AUGUST;
-			case TestMonth.AUGUST -> TestMonth.SEPTEMBER;
-			case TestMonth.SEPTEMBER -> TestMonth.OCTOBER;
-			case TestMonth.OCTOBER -> TestMonth.NOVEMBER;
-			case TestMonth.NOVEMBER -> TestMonth.DEZEMBER;
-			case TestMonth.DEZEMBER -> TestMonth.JANUARY;
-		};
-		return tM;
-	}
-	
-	public double getHoursOfWeek(TestMonth m, int week) {
+	public double calculateHoursOfWeek(TestMonth m, int week) {
 		double completeHours = 0;
 		if(m != null && week != 0) {
 			if(this.weeks != null && this.weeks.size() > 0 && 
@@ -401,15 +228,58 @@ public class HourCalc {
 		return completeHours;
 	}
 	
-	public double getHoursOfDayInWeek(TestMonth m, int week, Days d) {
+	public double calculateHoursOfDayInWeek(TestMonth m, int week, Days d) {
 		if(m != null && week != 0 && d != null) {
 			if(this.weeks != null && this.weeks.size() > 0 &&
 					this.weekends != null && this.weekends.size() > 0) {
-				String weekString = this.getWeekString(tM, week).toLowerCase();
+				String weekString = this.getWeekString(m, week).toLowerCase();
 				if(d.equals(Days.SATURDAY) || d.equals(Days.SUNDAY)) {
 					return this.weekends.get(weekString)[d.getID()];
 				} else {
 					return this.weeks.get(weekString)[d.getID()];
+				}
+			}
+		}
+		return 0;
+	}
+	
+	public double getHoursByDate(String date) {
+		if(date != null && date != "") {
+			if(this.weeks != null && this.weekends != null
+					&& this.dateOfWeeks != null && this.dateOfWeekends != null) {
+				boolean b = false;
+				for(Map.Entry<String, String[]> entry : this.dateOfWeeks.entrySet()) {
+					if(entry.getKey() != "" && entry.getValue() != null) {
+						String[] dates = entry.getValue();
+						for(int i = 0; i < dates.length; i++) {
+							if(dates[i].equalsIgnoreCase(date) && 
+									!dates[i].equalsIgnoreCase("x")) {
+								String week = entry.getKey();
+								if(this.weeks.get(week) != null) {
+									double[] weekHours = this.weeks.get(week);
+									b = true;
+									return weekHours[i];
+								}
+							}
+						}
+					}
+				}
+				if(!b) {
+					for(Map.Entry<String, String[]> entry : this.dateOfWeekends.entrySet()) {
+						if(entry.getKey() != "" && entry.getValue() != null) {
+							String[] dates = entry.getValue();
+							for(int i = 0; i < dates.length; i++) {
+								if(dates[i].equalsIgnoreCase(date) &&
+										!dates[i].equalsIgnoreCase("x")) {
+									String week = entry.getKey();
+									if(this.weekends.get(week) != null) {
+										double[] weHours = this.weekends.get(week);
+										return weHours[i];
+									}
+								}
+							}
+						}
+					}
 				}
 			}
 		}
@@ -425,7 +295,247 @@ public class HourCalc {
 		return hours;
 	}
 	
-	public String getWeekString(TestMonth tM, int weekNumber) {		
+	private void loadData() {
+		if(!FileManager.exists(path)) {
+			FileManager.createFile(path);
+		} else {
+			ArrayList<String> list = FileManager.readFileAsList(path);
+						
+			list.forEach(e -> {
+				if(e != null && e != "") {
+					String text = e.toLowerCase();
+					if(text.contains("-")) {
+						this.fillMonthWithDates(text);
+					} else if(text.contains("_")) {
+						this.fillMonthWithHours(text);
+					}
+				}
+			});			
+		}
+	}
+	
+	private void fillMonthWithDates(String s) {
+		if(s != null && s != "" && this.dateOfWeeks != null &&
+				this.dateOfWeekends != null) {
+			String[] split = s.split(" : ");
+			String[] weekDates = new String[5];
+			String[] weDates = new String[2];
+			
+			String[] split1 = split[1].split("/");
+			
+			if(split1[0].contains("[") && split1[0].contains("]")) {
+				String weekDa = split1[0].replace("[", "").replace("]", "");
+				
+				String[] split2 = weekDa.split(",");
+				
+				for(int i = 0; i < split2.length; i++) {
+					if(split2[i] != String.valueOf(0) && split2[i] != null) {
+						weekDates[i] = split2[i];
+					}
+				}
+			}
+			
+			if(split1[1].contains("[") && split1[1].contains("]")) {
+				String weDa = split1[1].replace("[", "").replace("]", "");
+				
+				String[] split2 = weDa.split(",");
+				
+				for(int i = 0; i < split2.length; i++) {
+					if(split2[i] != String.valueOf(0) && split2[i] != null) {
+						weDates[i] = split2[i];
+					}
+				}
+			}
+			
+			this.dateOfWeeks.put(split[0].replace("-", "_"), weekDates);
+			this.dateOfWeekends.put(split[0].replace("-", "_"), weDates);
+		}
+	}
+	
+	private void fillMonthWithHours(String s) {
+		if(s != null && s != "" && this.weeks != null &&
+				this.weekends != null) {
+			String[] split = s.split(" : ");
+			double[] workedHours = new double[5];
+			double[] workedHoursOnWe = new double[2];
+			
+			String[] split1 = split[1].split("/");
+
+			if(split1[0].contains("[") && split1[0].contains("]")) {
+				String weekHours = split1[0].replace("[", "").replace("]", "");
+				
+				String[] split2 = weekHours.split(",");
+				
+				for(int i = 0; i < split2.length; i++) {
+					if(split2[i] != null) {
+						workedHours[i] = Double.valueOf(split2[i]);
+					}
+				}
+			}
+			
+			if(split1[1].contains("[") && split1[1].contains("]")) {
+				String weHours = split1[1].replace("[", "").replace("]", "");
+				String[] split2 = weHours.split(",");
+				for(int i = 0; i < split2.length; i++) {
+					if(split2[i] != null) {
+						workedHoursOnWe[i] = Double.valueOf(split2[i]);
+					}
+				}
+			}
+			
+			this.weeks.put(split[0], workedHours);
+			this.weekends.put(split[0], workedHoursOnWe);
+		}
+	}
+	
+	private void setData(TestMonth m, String latestWeek, double wH) {
+		if(this.weeks != null && wH != 0 && latestWeek != null && this.weekends != null 
+				&& this.dateOfWeeks != null && this.dateOfWeekends != null) {
+			String[] s = latestWeek.split("_");
+			LocalDate date = LocalDate.now();
+//			Month tM = LocalDate.now().getMonth();
+//			DayOfWeek tD = LocalDate.now().getDayOfWeek();
+			
+			if(m.equals(tM)) {
+				if(tD.equals(Days.SATURDAY) || tD.equals(Days.SUNDAY)) {
+					if(this.weekends.get(latestWeek) != null &&
+							this.dateOfWeekends.get(latestWeek) != null) {
+						String[] weDates = this.dateOfWeekends.get(latestWeek);
+						double[] weHours = this.weekends.get(latestWeek);
+						weDates[tD.getID()] = String.valueOf(date.getDayOfMonth() + 
+								"." + date.getMonthValue());
+						weHours[tD.getID()] = wH;
+						this.dateOfWeekends.put(latestWeek, weDates);
+						this.weekends.put(latestWeek, weHours);
+					} else {
+						String[] weDates = { "x", "x" };
+						double[] weHours = new double[2];
+						weDates[tD.getID()] = String.valueOf(date.getDayOfMonth() + 
+								"." + date.getMonthValue());
+						weHours[tD.getID()] = wH;
+						this.dateOfWeekends.put(latestWeek, weDates);
+						this.weekends.put(latestWeek, weHours);
+					}
+				} else {					
+					if(tD.equals(Days.MONDAY)) {
+						String[] weekDates = { "x", "x", "x", "x", "x" };
+						double[] weekHours = new double[5];
+						String[] weDates = { "x", "x" };
+						double[] weHours = new double[2];
+						String newWeek = s[0] + "_" + s[1] + "_" + (Integer.valueOf(s[2]) + 1);
+						weekDates[tD.getID()] = String.valueOf(date.getDayOfMonth() +
+								"." + date.getMonthValue());
+						weekHours[tD.getID()] = wH;
+						this.dateOfWeeks.put(newWeek, weekDates);
+						this.weeks.put(newWeek, weekHours);
+						this.dateOfWeekends.put(newWeek, weDates);
+						this.weekends.put(newWeek, weHours);
+					} else {
+						String[] weekDates = this.dateOfWeeks.get(latestWeek);
+						double[] weekHours = this.weeks.get(latestWeek);
+						weekDates[tD.getID()] = String.valueOf(date.getDayOfMonth() +
+								"." + date.getMonthValue());
+						weekHours[tD.getID()] = wH;
+						this.dateOfWeeks.put(latestWeek, weekDates);
+						this.weeks.put(latestWeek, weekHours);
+					}
+				}
+				
+			} else if(tM.equals(this.getNextMonth(m))) {
+				if(!this.weeks.containsKey(this.getWeekString(tM, 1)) &&
+						!this.weekends.containsKey(this.getWeekString(tM, 1)) &&
+						!this.dateOfWeeks.containsKey(this.getWeekString(tM, 1)) &&
+						!this.dateOfWeekends.containsKey(this.getWeekString(tM, 1))) {
+					String[] weekDates = { "x", "x", "x", "x", "x" };
+					double[] weekHours = new double[5];
+					String[] weDates = { "x", "x" };
+					double[] weHours = new double[2];
+					String newWeek = this.getWeekString(tM, 1);
+					if(!tD.equals(Days.SATURDAY) || !tD.equals(Days.SUNDAY)) {
+						weekDates[tD.getID()] = String.valueOf(date.getDayOfMonth() +
+								"." + date.getMonthValue());
+						weekHours[tD.getID()] = wH;
+					} else {
+						weDates[tD.getID()] = String.valueOf(date.getDayOfMonth() +
+								"." + date.getMonthValue());
+						weHours[tD.getID()] = wH;
+					}
+					this.dateOfWeeks.put(newWeek, weekDates);
+					this.weeks.put(newWeek, weekHours);
+					this.dateOfWeekends.put(newWeek, weDates);
+					this.weekends.put(newWeek, weHours);
+				} else {
+					String[] weekDates = this.dateOfWeeks.get(latestWeek);
+					double[] weekHours = this.weeks.get(latestWeek);
+					String[] weDates = this.dateOfWeekends.get(latestWeek);
+					double[] weHours = this.weekends.get(latestWeek);
+					if(!tD.equals(Days.SATURDAY) || !tD.equals(Days.SUNDAY)) {
+						weekDates[tD.getID()] = String.valueOf(date.getDayOfMonth() +
+								"." + date.getMonthValue());
+						weekHours[tD.getID()] = wH;
+					} else {
+						weDates[tD.getID()] = String.valueOf(date.getDayOfMonth() +
+								"." + date.getMonthValue());
+						weHours[tD.getID()] = wH;
+					}
+					this.dateOfWeeks.put(latestWeek, weekDates);
+					this.weeks.put(latestWeek, weekHours);
+					this.dateOfWeekends.put(latestWeek, weDates);
+					this.weekends.put(latestWeek, weHours);
+				}
+			}
+		}
+	}
+	
+	private void printFirstWeek(TestMonth m, double wH) {
+		if(this.weeks != null && this.weeks.size() <= 0 &&
+				this.weekends != null && this.weekends.size() <= 0) {
+			LocalDate date = LocalDate.now();
+//			Month tM = LocalDate.now().getMonth();
+//			DayOfWeek tD = LocalDate.now().getDayOfWeek();
+			
+			String firstWeek = this.getWeekString(m, 1).toLowerCase();
+			String[] weekDates = { "x", "x", "x", "x", "x" };
+			double[] weekHours = new double[5];
+			String[] weDates = { "x", "x" };
+			double[] weHours = new double[2];
+			
+			if(!tD.equals(Days.SATURDAY) || !tD.equals(Days.SUNDAY)) {
+				weekDates[tD.getID()] = String.valueOf(date.getDayOfMonth() +
+						"." + date.getMonthValue());
+				weekHours[tD.getID()] = wH;
+			} else {
+				weDates[tD.getID()] = String.valueOf(date.getDayOfMonth() +
+						"."+ date.getMonthValue());
+				weHours[tD.getID()] = wH;
+			}
+			
+			this.dateOfWeeks.put(firstWeek, weekDates);
+			this.weeks.put(firstWeek, weekHours);
+			this.dateOfWeekends.put(firstWeek, weDates);
+			this.weekends.put(firstWeek, weHours);
+		}
+	}
+	
+	private TestMonth getNextMonth(TestMonth m) {
+		TestMonth tM = switch (m) {
+			case TestMonth.JANUARY -> TestMonth.FEBRUARY;
+			case TestMonth.FEBRUARY -> TestMonth.MARCH;
+			case TestMonth.MARCH -> TestMonth.APRIL;
+			case TestMonth.APRIL -> TestMonth.MAY;
+			case TestMonth.MAY -> TestMonth.JUNE;
+			case TestMonth.JUNE -> TestMonth.JULY;
+			case TestMonth.JULY -> TestMonth.AUGUST;
+			case TestMonth.AUGUST -> TestMonth.SEPTEMBER;
+			case TestMonth.SEPTEMBER -> TestMonth.OCTOBER;
+			case TestMonth.OCTOBER -> TestMonth.NOVEMBER;
+			case TestMonth.NOVEMBER -> TestMonth.DEZEMBER;
+			case TestMonth.DEZEMBER -> TestMonth.JANUARY;
+		};
+		return tM;
+	}
+	
+	private String getWeekString(TestMonth tM, int weekNumber) {		
 		String str = switch (tM) {
 			case TestMonth.JANUARY -> "JRY_WEEK_" + weekNumber;
 			case TestMonth.FEBRUARY -> "FEB_WEEK_" + weekNumber;
@@ -443,7 +553,7 @@ public class HourCalc {
 		return str;
 	}
 	
-	public int getIDOfTodaysDay() {
+	private int getIDOfTodaysDay() {
 		DayOfWeek d = LocalDate.now().getDayOfWeek();		
 		int id = switch (d) {
 			case DayOfWeek.MONDAY -> Days.MONDAY.getID();
@@ -458,18 +568,19 @@ public class HourCalc {
 		return id;
 	}
 	
-	public String doubleArrayToString(double[] input) {
-		String str = "";
-		if(input != null) {
-			for(int i = 0; i < input.length; i++) {
-				if(i + 1 < input.length) {
-					str += String.valueOf(input[i]) + ",";
-				} else {
-					str += String.valueOf(input[i]);
-				}
-			}
-		}
-		return str;
+	//Testing
+	
+	public void setTestDate(TestMonth m, Days d) {
+		this.tM = m;
+		this.tD = d;
+	}
+	
+	public TestMonth getTestMonth() {
+		return tM;
+	}
+	
+	public Days getTestDays() {
+		return tD;
 	}
 	
 	enum CalcType {

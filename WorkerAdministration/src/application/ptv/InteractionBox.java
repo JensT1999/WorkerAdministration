@@ -4,9 +4,11 @@ import application.utils.FileManager;
 import application.utils.Utils;
 import application.utils.worker.NewWorker;
 import application.utils.worker.Worker;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.VBox;
 
 public class InteractionBox extends VBox {
@@ -61,23 +63,25 @@ public class InteractionBox extends VBox {
 		this.getChildren().addAll(tf1, tf2, tf3, b1, b2, pathField, b3, b4);
 		
 		this.b1.setOnMouseClicked(e -> {
-			if(this.tf1.getText() != "") {
-				if(this.tf2.getText() != "") {
-					if(this.tf3.getText() != "") {
-						if(Utils.isValidDate(this.tf3.getText())) {
-							String firstName = this.tf1.getText();
-							String lastName = this.tf2.getText();
-							String birthday = this.tf3.getText();
-							
-							NewWorker nw = new NewWorker(firstName, lastName, birthday);
-							
-							this.ptf.getWorkerManager().createWorker(nw);
-							this.tf1.clear();
-							this.tf2.clear();
-							this.tf3.clear();
-							this.tf1.requestFocus();
-							
-							this.ptf.getPtv().updateComplete();
+			if(this.ptf.getCenter().equals(this.ptf.getPtv())) {
+				if(this.tf1.getText() != "") {
+					if(this.tf2.getText() != "") {
+						if(this.tf3.getText() != "") {
+							if(Utils.isValidDate(this.tf3.getText())) {
+								String firstName = this.tf1.getText();
+								String lastName = this.tf2.getText();
+								String birthday = this.tf3.getText();
+								
+								NewWorker nw = new NewWorker(firstName, lastName, birthday);
+								
+								this.ptf.getWorkerManager().createWorker(nw);
+								this.tf1.clear();
+								this.tf2.clear();
+								this.tf3.clear();
+								this.tf1.requestFocus();
+								
+								this.ptf.getPtv().updateComplete();
+							}
 						}
 					}
 				}
@@ -85,37 +89,61 @@ public class InteractionBox extends VBox {
 		});
 		
 		this.b2.setOnMouseClicked(e -> {
-			if(this.ptf.getPtv().getSelectionModel() != null) {
-				if(this.ptf.getPtv().getSelectionModel().getSelectedItem() != null) {
-					Worker w = this.ptf.getPtv().getSelectionModel().getSelectedItem();
-					
-					this.ptf.getWorkerManager().removeWorker(w, true);
-					
-					this.ptf.getDataBox().setCurrentSearchMatches();
-					
-					this.ptf.getPtv().updateComplete();
+			if(this.ptf.getCenter().equals(this.ptf.getPtv())) {
+				if(this.ptf.getPtv().getSelectionModel() != null) {
+					if(this.ptf.getPtv().getSelectionModel().getSelectedItem() != null) {
+						Worker w = this.ptf.getPtv().getSelectionModel().getSelectedItem();
+						
+						this.ptf.getWorkerManager().removeWorker(w, true);
+						
+						this.ptf.getDataBox().setCurrentSearchMatches();
+						
+						this.ptf.getPtv().updateComplete();
+					}
 				}
 			}
 		});
 		
 		this.b3.setOnMouseClicked(e -> {
-			if(this.pathField != null && this.pathField.getText() != "") {
-				String path = this.pathField.getText();
-				if(FileManager.exists(path)) {
-					this.ptf.getWorkerManager().convertFileIntoData(path);
-					this.pathField.clear();
-					this.tf1.requestFocus();
-					this.ptf.getPtv().updateComplete();
+			if(this.ptf.getCenter().equals(this.ptf.getPtv())) {
+				if(this.pathField != null && this.pathField.getText() != "") {
+					String path = this.pathField.getText();
+					if(FileManager.exists(path)) {
+						if(this.ptf.getWorkerManager().convertFile(path)) {
+							this.pathField.clear();
+							this.tf1.requestFocus();
+							this.ptf.getPtv().updateComplete();
+						}
+					}
 				}
 			}
 		});
 		
 		this.b4.setOnMouseClicked(e -> {
-			if(this.ptf.getPtv().getSelectionModel() != null) {
-				if(this.ptf.getPtv().getSelectionModel().getSelectedItem() != null) {
-					Worker w = this.ptf.getPtv().getSelectionModel().getSelectedItem();
-					
-					this.ptf.getWDB().showBoxFor(w);
+			if(this.ptf.getCenter().equals(this.ptf.getPtv())) {
+				if(this.ptf.getPtv().getSelectionModel() != null) {
+					if(this.ptf.getPtv().getSelectionModel().getSelectedItem() != null) {
+						Worker w = this.ptf.getPtv().getSelectionModel().getSelectedItem();
+						
+						this.ptf.getWDB().showBoxFor(w);
+					}
+				}
+			}
+		});
+		
+		this.pathField.setOnKeyPressed(e -> {
+			if(this.ptf.getCenter().equals(this.ptf.getPtv())) {
+				if(this.pathField != null && this.pathField.getText() != null) {
+					if(e.getCode().equals(KeyCode.ENTER) || e.getCode().equals(KeyCode.TAB)) {
+						String path = this.pathField.getText();
+						if(FileManager.exists(path)) {
+							if(this.ptf.getWorkerManager().convertFile(path)) {
+								this.pathField.clear();
+								this.tf1.requestFocus();
+								this.ptf.getPtv().updateComplete();								
+							}							
+						}
+					}
 				}
 			}
 		});

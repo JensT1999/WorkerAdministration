@@ -7,8 +7,8 @@ public enum Days {
 	WEDNESDAY("Mittwoch", 2),
 	THURSDAY("Donnerstag", 3),
 	FRIDAY("Freitag", 4),
-	SATURDAY("Samstag", 5),
-	SUNDAY("Sonntag", 6);
+	SATURDAY("Samstag", 0),
+	SUNDAY("Sonntag", 1);
 	
 	private String name;
 	private int id;

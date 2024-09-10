@@ -4,6 +4,7 @@ import application.utils.SortType;
 import application.utils.Utils;
 import application.utils.worker.Worker;
 import application.utils.worker.WorkerSearchAlgo;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TableColumn;
@@ -70,19 +71,23 @@ public class PersonTableView extends TableView<Worker> {
 	}
 	
 	public void updateComplete() {
-		if(this.wsa.getLoadedPersons() != null && this.wsa.getLoadedPersons().size() > 0) {
-			if(this.wsa.hasSearchData()) {
-				this.setItems(this.wsa.searchForData());
-			} else {
-				this.setItems(this.wsa.sortTable());
+		Platform.runLater(() -> {
+			synchronized (this.wsa.getLoadedPersons()) {
+				if(this.wsa.getLoadedPersons() != null && this.wsa.getLoadedPersons().size() > 0) {
+					if(this.wsa.hasSearchData()) {
+						this.setItems(this.wsa.searchForData());
+					} else {
+						this.setItems(this.wsa.sortTable());
+					}
+				} else {
+					ObservableList<Worker> list = FXCollections.observableArrayList();
+					this.setItems(list);
+				}
+				
+				this.wsa.updateSearchMatches();
+				this.ptf.getDataBox().setCurrentSearchMatches();
 			}
-		} else {
-			ObservableList<Worker> list = FXCollections.observableArrayList();
-			this.setItems(list);
-		}
-		
-		this.wsa.updateSearchMatches();
-		this.ptf.getDataBox().setCurrentSearchMatches();
+		});
 	}
 	
 	public PersonTableFrame getFrame() {
